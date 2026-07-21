@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="editor.css" />
+  <title>MemeDrop — Editor</title>
+</head>
+<body>
+  <!-- Pairing (members, standalone mode) -->
+  <div id="pairGate" class="gl-gate hidden">
+    <div class="card pad gl-card" style="max-width:440px">
+      <div class="brand" style="justify-content:center;margin-bottom:8px"><img class="logo" src="logo.png" alt="MemeDrop" style="width:40px;height:40px" /><b>MemeDrop — Editor</b></div>
+      <p class="muted">Link this device to your channel to compose and send memes.</p>
+      <label class="label">Pairing code</label>
+      <input class="input" id="pairCode" placeholder="ABCD1234" autocomplete="off" />
+      <label class="label">This device's name</label>
+      <input class="input" id="pairName" placeholder="My PC" />
+      <div class="err" id="pairErr"></div>
+      <button class="btn btn-primary wide" id="pairBtn">Connect</button>
+      <p class="muted small" style="margin-top:8px">Get a code from the panel (a channel's Devices tab), the <b>/link</b> Discord command, or a moderator.</p>
+    </div>
+  </div>
+
+  <div id="glGate" class="gl-gate hidden">
+    <div class="card pad gl-card">
+      <h3>Before you start</h3>
+      <p class="muted">Read and accept the community guidelines to send memes.</p>
+      <div class="guidelines" id="glText"></div>
+      <label class="gl-check"><input type="checkbox" id="glAgree"> I have read and accept the guidelines.</label>
+      <button class="btn btn-primary wide" id="glContinue" disabled>Continue</button>
+    </div>
+  </div>
+
+  <div class="editor">
+    <!-- 16:9 WYSIWYG stage -->
+    <div class="stage-col">
+      <div class="stage-head">
+        <div class="brand"><img class="logo" src="logo.png" alt="MemeDrop" /><b>Meme editor</b></div>
+        <div class="head-right">
+          <span class="storage" id="storageCounter" title="Storage used / quota">— / — MB</span>
+          <span class="storage" id="durBadge" title="Total meme duration">⏱ 6s</span>
+          <label class="chan-select" id="chanSelectWrap"><span class="muted small">Channel</span>
+            <select id="channelSelect"></select>
+          </label>
+          <!-- LOCAL listening volume (previews, soundboard) — never affects what you send -->
+          <div class="site-volume" id="siteVolume" title="Local listening volume (previews and soundboard only)">
+            <button id="siteVolIcon" class="btn btn-ghost" aria-label="Mute/unmute local sound">🔊</button>
+            <input type="range" id="siteVol" min="0" max="100" value="70" aria-label="Local listening volume">
+          </div>
+          <button class="btn btn-ghost" id="previewBtn">👁️ Preview</button>
+        </div>
+      </div>
+      <div class="stage-wrap">
+        <div class="stage-16by9" id="stage">
+          <div class="stage-bg" id="stageBg"></div>
+          <video id="stageVideo" class="stage-media hidden" loop muted playsinline></video>
+          <img id="stageImg" class="stage-media hidden" />
+          <div id="elements"></div>
+          <canvas id="drawCanvas" class="draw-canvas"></canvas>
+          <div class="stage-hint" id="stageHint">16:9 stage — exactly what your friends will see · paste an image or a link (Ctrl+V)</div>
+        </div>
+      </div>
+
+      <!-- Creation tools -->
+      <div class="toolbar">
+        <button class="btn btn-ghost" id="tbUndo" title="Undo (Ctrl+Z)">↶</button>
+        <button class="btn btn-ghost" id="tbRedo" title="Redo (Ctrl+Y)">↷</button>
+        <span class="sep"></span>
+        <button class="btn btn-ghost" id="tbText">＋ Text</button>
+        <button class="btn btn-ghost" id="tbEmoji">😀 Emoji</button>
+        <button class="btn btn-ghost" id="tbImage">🖼️ Media</button>
+        <button class="btn btn-ghost" id="tbGif">🎞️ GIFs</button>
+        <button class="btn btn-ghost" id="tbBg">🎨 Background</button>
+        <button class="btn btn-ghost" id="tbSound">🔊 Sound</button>
+        <button class="btn btn-ghost" id="tbDraw">🖊️ Draw</button>
+        <button class="btn btn-ghost" id="tbDistort" title="Drag a corner to distort (perspective). Ctrl+drag also works without this mode.">🔷 Distort</button>
+        <button class="btn btn-ghost" id="tbTemplate" title="Meme templates">📐 Templates</button>
+        <button class="btn btn-ghost hidden" id="tbLast" title="Resume the last meme">↩️ Last</button>
+        <span class="draw-tools hidden" id="drawTools">
+          <button class="btn btn-ghost" id="drawPen" title="Pen">✏️</button>
+          <button class="btn btn-ghost" id="drawEraser" title="Eraser">🩹</button>
+          <input type="color" id="drawColor" class="input color" value="#ff3b30" title="Color">
+          <input type="range" id="drawSize" min="1" max="40" value="6" title="Thickness">
+          <button class="btn btn-ghost" id="drawClear">Clear all</button>
+        </span>
+      </div>
+
+      <!-- Display options : how the meme plays on the recipient's screen -->
+      <div class="display-bar">
+        <div class="db-item">
+          <label class="label">Duration <span id="durVal">6</span>s <span class="muted small" id="durAuto"></span></label>
+          <input type="range" id="optDur" min="1" max="30" value="6">
+        </div>
+        <div class="db-item">
+          <label class="label">Animation</label>
+          <select id="optAnim"><option>fade</option><option>slide</option><option>bounce</option><option>shake</option><option>none</option></select>
+        </div>
+        <div class="db-item">
+          <label class="label">In <span id="animInVal">0.35</span>s</label>
+          <input type="range" id="optAnimIn" min="80" max="1500" step="10" value="350">
+        </div>
+        <div class="db-item">
+          <label class="label">Out <span id="animOutVal">0.35</span>s</label>
+          <input type="range" id="optAnimOut" min="80" max="1500" step="10" value="350">
+        </div>
+        <div class="db-item">
+          <label class="label">Volume <span id="volVal">70</span>%</label>
+          <input type="range" id="optVol" min="0" max="100" value="70">
+        </div>
+      </div>
+
+      <div class="emoji-pop hidden" id="emojiPop"></div>
+      <div class="emoji-pop template-pop hidden" id="templatePop"></div>
+
+      <!-- Background popover -->
+      <div class="tool-pop hidden" id="bgPop">
+        <h4>Stage background</h4>
+        <div class="seg" id="bgMode">
+          <button data-bg="none" class="active">None</button>
+          <button data-bg="color">Color</button>
+          <button data-bg="media">Media</button>
+        </div>
+        <div id="bgColorWrap" class="hidden"><input type="color" id="bgColor" class="input color" value="#111114"></div>
+        <div id="bgMediaWrap" class="hidden">
+          <button class="btn btn-ghost wide" id="bgPick">Pick image / GIF / video / sound</button>
+          <div class="muted small" id="bgMediaName"></div>
+        </div>
+      </div>
+
+      <!-- GIFs popover (Giphy) -->
+      <div class="tool-pop hidden" id="gifPop">
+        <h4>GIF search <span class="muted small">powered by GIPHY</span></h4>
+        <div class="row" style="gap:6px">
+          <input id="gifQuery" class="input" placeholder="Search a GIF…" style="flex:1">
+          <button class="btn btn-ghost" id="gifSearch">Search</button>
+        </div>
+        <div id="gifResults" class="gif-grid"></div>
+        <div class="muted small" id="gifMsg"></div>
+      </div>
+
+      <!-- Sound popover -->
+      <div class="tool-pop hidden" id="soundPop">
+        <div id="soundCard">
+          <h4>Sound on appear</h4>
+          <button class="btn btn-ghost wide" id="soundPick">Add a sound (file)</button>
+          <div class="muted small" id="soundName">No sound</div>
+
+          <h4 style="margin-top:12px">🔊 Soundboard (myinstants)</h4>
+          <div class="row" style="gap:6px">
+            <input id="sbQuery" class="input" placeholder="Search a sound…" style="flex:1">
+            <button class="btn btn-ghost" id="sbSearch">Search</button>
+          </div>
+          <div id="sbResults" class="sb-list"></div>
+
+          <div class="muted small" style="margin-top:10px">🎛️ Channel soundboard (shared)</div>
+          <div id="sbShared" class="sb-list"></div>
+
+          <div class="row" style="gap:6px; align-items:center; margin-top:10px">
+            <div class="muted small" style="flex:1">My library</div>
+            <button class="btn btn-ghost" id="sbFavOnly" title="Favorites only" style="padding:2px 8px">☆</button>
+            <select id="sbLibCat" class="input" style="width:auto; padding:2px 6px"><option value="">All categories</option></select>
+          </div>
+          <div id="sbLibrary" class="sb-list"></div>
+          <div class="muted small" id="sbMsg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel : layers, selection, delivery -->
+    <div class="panel-col">
+      <div class="scroll">
+        <!-- Layers -->
+        <div class="card pad sect">
+          <h4>Layers</h4>
+          <div id="layersList" class="layers"></div>
+        </div>
+
+        <!-- Selected element -->
+        <div class="card pad sect hidden" id="elCard">
+          <h4>Selected element</h4>
+          <div id="elText">
+            <input class="input" id="elTextInput" placeholder="Text" />
+            <div class="grid2">
+              <div><label class="label">Color</label><input type="color" id="elColor" class="input color"></div>
+              <label class="chk" style="margin-top:22px"><input type="checkbox" id="elOutline" checked> Outline</label>
+            </div>
+            <label class="label">Size</label>
+            <div class="row size-row" id="elSizes">
+              <button class="btn btn-ghost" data-size="0.05">S</button>
+              <button class="btn btn-ghost" data-size="0.09">M</button>
+              <button class="btn btn-ghost" data-size="0.14">L</button>
+              <button class="btn btn-ghost" data-size="0.2">XL</button>
+            </div>
+          </div>
+          <label class="label">Opacity: <span id="elOpacityVal">100</span>%</label>
+          <input type="range" id="elOpacity" min="10" max="100" value="100">
+          <label class="label">Rotation: <span id="elRotVal">0</span>°</label>
+          <input type="range" id="elRot" min="-180" max="180" value="0">
+          <div class="row">
+            <button class="btn btn-danger" id="elDelete">Delete</button>
+          </div>
+        </div>
+
+        <!-- Placement on the recipient's screen -->
+        <div class="card pad sect">
+          <h4>On your friends' screen</h4>
+          <div id="placeWrap">
+            <label class="label">Position &amp; size — drag the frame, handle to resize</label>
+            <div class="screen-preview mini" id="miniScreen">
+              <div class="place-box" id="miniBox"><span class="ratio">16:9</span><div class="handle" id="miniHandle"></div></div>
+            </div>
+            <div class="row"><button class="btn btn-ghost" id="miniReset">Center</button></div>
+          </div>
+        </div>
+
+        <!-- Recipients -->
+        <div class="card pad sect">
+          <h4>Recipients <span class="badge" id="targetBadge">everyone</span></h4>
+          <div id="groupChips" class="chips"></div>
+          <div id="memberChips" class="chips"></div>
+        </div>
+      </div>
+
+      <div class="send-bar">
+        <div class="err" id="sendErr"></div>
+        <div class="row">
+          <button class="btn btn-ghost" id="scheduleBtn">🕒 Schedule</button>
+          <button class="btn btn-ghost" id="saveBtn">💾 Save</button>
+        </div>
+        <button class="btn btn-primary wide big" id="sendBtn">Send the meme 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule modal -->
+  <div class="modal hidden" id="schModal">
+    <div class="modal-box card pad">
+      <h3>Schedule this meme</h3>
+      <label class="label">Type</label>
+      <select id="schType">
+        <option value="in">In X minutes</option>
+        <option value="at">At a precise date/time</option>
+        <option value="recurring">Weekly (days + time)</option>
+      </select>
+      <div id="schIn"><label class="label">Minutes</label><input class="input" type="number" id="schMinutes" min="1" value="10"></div>
+      <div id="schAt" class="hidden"><label class="label">Date and time</label><input class="input" type="datetime-local" id="schDatetime"></div>
+      <div id="schRec" class="hidden">
+        <label class="label">Days</label>
+        <div class="chips" id="schDays"></div>
+        <label class="label">Time</label><input class="input" type="time" id="schTime" value="12:00">
+      </div>
+      <label class="label">Name (optional)</label><input class="input" id="schLabel" placeholder="Morning joke">
+      <div class="err" id="schErr"></div>
+      <div class="row end"><button class="btn btn-ghost" id="schCancel">Cancel</button><button class="btn btn-primary" id="schOk">Schedule</button></div>
+    </div>
+  </div>
+
+  <!-- Preview (as received) -->
+  <div class="modal hidden" id="previewModal">
+    <div class="modal-box card pad">
+      <h3>Preview — as your friends will see it</h3>
+      <div class="preview-screen" id="previewScreen"></div>
+      <div class="row end"><button class="btn btn-ghost" id="previewReplay">↻ Replay</button><button class="btn btn-primary" id="previewClose">Close</button></div>
+    </div>
+  </div>
+
+  <!-- Save to library -->
+  <div class="modal hidden" id="saveModal">
+    <div class="modal-box card pad" style="max-width:420px">
+      <h3>Save the meme</h3>
+      <label class="label">Name</label>
+      <input class="input" id="saveName" placeholder="My meme" />
+      <div class="err" id="saveErr"></div>
+      <div class="row end"><button class="btn btn-ghost" id="saveCancel">Cancel</button><button class="btn btn-primary" id="saveOk">Save</button></div>
+    </div>
+  </div>
+
+  <!-- Context menu (right click) -->
+  <div class="ctx-menu hidden" id="ctxMenu"></div>
+
+  <input type="file" id="hiddenFile" class="hidden">
+  <!-- api.js resolves auth (member pairing OR panel editor token) then loads editor.js -->
+  <script src="api.js"></script>
+</body>
+</html>

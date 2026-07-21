@@ -1,0 +1,88 @@
+.app { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; box-shadow: var(--glow); }
+.small { font-size: 12px; }
+.status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
+.status .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+.status.connected .dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.status.connecting .dot, .status.reconnecting .dot { background: var(--warning); }
+.status.unpaired .dot, .status.disconnected .dot { background: var(--danger); }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+.tabs button { background: none; border: none; color: var(--muted); font: 600 14px inherit; padding: 10px 16px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tabs button.active { color: var(--ink); border-color: var(--accent); }
+
+section { display: none; }
+section.active { display: block; animation: fade .2s; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+.pad { padding: 22px; }
+h3 { margin-bottom: 16px; }
+h4 { margin: 18px 0 10px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.card + .card { margin-top: 16px; }
+label.label { margin-top: 14px; }
+section .card > label.label:first-of-type { margin-top: 0; }
+input[type=range] { width: 100%; margin: 6px 0 4px; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.row.end { justify-content: flex-end; }
+.wide { width: 100%; margin-top: 14px; }
+.mono { font-family: ui-monospace, monospace; }
+.err { color: var(--danger); font-size: 13px; margin-top: 10px; min-height: 16px; }
+.hidden { display: none !important; }
+.big { font-size: 18px; font-weight: 700; }
+.paired { display: flex; gap: 30px; margin-bottom: 14px; }
+
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.toggle { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+.toggle input { display: none; }
+.toggle span { position: absolute; inset: 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; transition: .2s; }
+.toggle span::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: .2s; }
+.toggle input:checked + span { background: var(--accent); border-color: transparent; }
+.toggle input:checked + span::after { transform: translateX(20px); }
+
+.anchor-grid { display: grid; grid-template-columns: repeat(3, 44px); gap: 6px; margin: 6px 0; }
+.anchor-grid button { aspect-ratio: 1; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; transition: .15s; }
+.anchor-grid button.active { background: var(--accent-gradient); border-color: transparent; box-shadow: var(--glow); }
+
+/* Contrôle segmenté */
+.seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 3px; margin-bottom: 4px; }
+.seg button { background: none; border: none; color: var(--muted); font: 600 13px inherit; padding: 7px 14px; border-radius: 9px; cursor: pointer; }
+.seg button.active { background: var(--accent-gradient); color: #fff; box-shadow: var(--glow); }
+
+/* Éditeur de cadre 16/9 sur une mini-représentation de l'écran */
+.screen-preview { position: relative; width: 100%; aspect-ratio: 16 / 9; background: repeating-linear-gradient(45deg, #101014, #101014 12px, #14141a 12px, #14141a 24px); border: 1px solid var(--border); border-radius: 12px; margin: 8px 0; overflow: hidden; }
+.place-box { position: absolute; border: 2px solid var(--accent); background: rgba(245, 52, 42, .18); border-radius: 6px; cursor: move; box-shadow: var(--glow); display: grid; place-items: center; }
+.place-box .ratio { font: 700 11px system-ui; color: #fff; opacity: .8; pointer-events: none; }
+.place-box .handle { position: absolute; right: -7px; bottom: -7px; width: 16px; height: 16px; border-radius: 4px; background: var(--accent); border: 2px solid #fff; cursor: nwse-resize; }
+.hidden { display: none !important; }
+
+/* Onboarding (#4) */
+.onboarding { border-color: var(--accent); box-shadow: var(--glow); }
+.onboard-steps { margin: 8px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.7; color: var(--muted); }
+.onboard-steps b { color: var(--ink); }
+
+/* À propos (#49) */
+.about-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.about-row:last-of-type { border-bottom: none; }
+
+/* Vignette de placement overlay d'un membre (#32) */
+.ov-thumb { position: relative; width: 88px; aspect-ratio: 16/9; flex: 0 0 auto; background: repeating-linear-gradient(45deg, #101014, #101014 6px, #14141a 6px, #14141a 12px); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.ov-thumb-box { position: absolute; background: rgba(245, 52, 42, .35); border: 1px solid var(--accent); border-radius: 3px; }
+
+/* Sélecteur d'emojis de réaction (#31) */
+.react-slot { font-size: 22px; width: 46px; height: 46px; padding: 0; }
+#reactPop { position: relative; margin-top: 8px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; bottom: auto; left: auto; }
+#reactPop button { background: none; border: none; font-size: 22px; width: 34px; height: 34px; cursor: pointer; border-radius: 6px; }
+#reactPop button:hover { background: var(--surface-2); }
+
+.sched-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
+.sched-row .btn { padding: 6px 10px; }
+
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: grid; place-items: center; padding: 20px; z-index: 50; }
+.modal-box { max-width: 620px; width: 100%; max-height: 80vh; display: flex; flex-direction: column; }
+.guidelines { overflow: auto; white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: var(--muted); margin: 10px 0; }
+.guidelines h1, .guidelines h2 { color: var(--ink); }

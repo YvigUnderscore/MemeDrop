@@ -1,0 +1,38 @@
+# ============================================================
+#  Configuration de build du client MemeDrop (electron-builder)
+#  Build :  npm install  &&  npm run dist   → client/dist/MemeDrop-Setup-x.y.z.exe
+# ============================================================
+appId: com.memedrop.client
+productName: MemeDrop
+copyright: MIT © MemeDrop
+
+directories:
+  output: dist
+  buildResources: build
+
+files:
+  - src/**/*
+  - "!**/*.map"
+
+# Métadonnées qui réduisent les faux-positifs antivirus (exe décrit et cohérent).
+win:
+  icon: build/icon.png   # electron-builder génère automatiquement le .ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: "MemeDrop-Setup-${version}.${ext}"
+  # Ajoutez ici votre certificat pour signer (fortement recommandé, cf docs/CLIENT.md) :
+  # certificateFile: build/cert.pfx
+  # certificatePassword: ${env.CSC_KEY_PASSWORD}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: MemeDrop
+
+# Pas de compression maximale (les binaires compressés type UPX déclenchent les AV).
+compression: normal

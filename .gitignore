@@ -1,0 +1,56 @@
+# ============================================================
+#  MemeDrop — .gitignore
+#  Rule of thumb: never commit secrets, runtime data or build output.
+# ============================================================
+
+# --- Dependencies ---
+node_modules/
+
+# --- Environment & secrets (NEVER commit) ---
+.env
+.env.*
+!.env.example
+*.local
+.secrets.json
+**/.secrets.json
+
+# Certificates & private keys (code signing, TLS)
+*.pfx
+*.p12
+*.pem
+*.key
+*.cer
+*.crt
+
+# --- Runtime data (SQLite DB, media, tmp) ---
+data/
+server/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+uploads/
+media-store/
+
+# --- Build output ---
+server/public/
+panel/dist/
+client/dist/
+client/out/
+
+# --- Tests ---
+server/.vitest-data/
+server/data-test/
+coverage/
+
+# --- Logs ---
+*.log
+logs/
+npm-debug.log*
+
+# --- OS / editors / tools ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/
+plans/

@@ -1,0 +1,22 @@
+{
+  "name": "memedrop-client",
+  "productName": "MemeDrop",
+  "version": "1.0.1",
+  "description": "MemeDrop — client desktop : reçoit et affiche les memes des copains en overlay.",
+  "author": "MemeDrop",
+  "license": "MIT",
+  "main": "src/main/main.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64",
+    "pack": "electron-builder --dir"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  }
+}

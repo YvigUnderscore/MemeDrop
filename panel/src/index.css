@@ -1,0 +1,162 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Police : stack système (Inter si installé) — aucun appel réseau externe,
+   compatible avec la CSP stricte du serveur. */
+
+/* ---- Tokens de design (canaux RGB pour l'opacité Tailwind) --------------
+   Source de vérité partagée avec le client desktop (client/src/shared/theme.css). */
+:root, [data-theme="dark"] {
+  --c-bg: 11 10 12;
+  --c-surface: 22 19 23;
+  --c-surface-2: 32 28 33;
+  --c-border: 51 45 51;
+  --c-ink: 242 238 238;
+  --c-muted: 164 154 160;
+  --c-accent: 245 52 42;
+  --c-accent-2: 224 16 26;
+  --c-success: 34 197 94;
+  --c-danger: 251 113 133;
+  --c-warning: 245 158 11;
+  --bg-glow-1: rgba(245, 52, 42, 0.12);
+  --bg-glow-2: rgba(224, 16, 26, 0.09);
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --c-bg: 245 243 246;
+  --c-surface: 255 255 255;
+  --c-surface-2: 238 235 240;
+  --c-border: 214 208 216;
+  --c-ink: 26 22 28;
+  --c-muted: 110 102 112;
+  --c-accent: 219 30 24;
+  --c-accent-2: 176 12 20;
+  --c-success: 22 163 74;
+  --c-danger: 225 45 75;
+  --c-warning: 180 120 6;
+  --bg-glow-1: rgba(245, 52, 42, 0.10);
+  --bg-glow-2: rgba(224, 16, 26, 0.06);
+  color-scheme: light;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: radial-gradient(1200px 800px at 80% -10%, var(--bg-glow-1), transparent 60%),
+              radial-gradient(1000px 700px at -10% 110%, var(--bg-glow-2), transparent 55%),
+              rgb(var(--c-bg));
+  color: rgb(var(--c-ink));
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgb(var(--c-border)); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-muted) / 0.5); }
+
+/* ---- Densité (confortable / compact) — pilotée par data-density ---------- */
+[data-density="compact"] { --sp: 0.6; }
+[data-density="compact"] .card { @apply p-3; }
+[data-density="compact"] .dense-row { @apply py-1.5; }
+
+/* ---- Accessibilité : focus visible cohérent ------------------------------ */
+:focus-visible { outline: 2px solid rgb(var(--c-accent)); outline-offset: 2px; border-radius: 6px; }
+button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
+
+/* Respecte la préférence de mouvement réduit. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-border rounded-2xl shadow-card;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed select-none;
+  }
+  .btn-primary {
+    @apply btn bg-accent-gradient text-white shadow-glow hover:brightness-110 active:brightness-95;
+  }
+  .btn-ghost {
+    @apply btn bg-surface-2 text-ink border border-border hover:border-accent/60;
+  }
+  .btn-danger {
+    @apply btn bg-danger/15 text-danger border border-danger/30 hover:bg-danger/25;
+  }
+  .input {
+    @apply w-full bg-surface-2 border border-border rounded-xl px-3 py-2 text-sm text-ink
+           placeholder:text-muted/60 outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition;
+  }
+  .label { @apply block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium; }
+
+  /* Squelette de chargement */
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-surface-2;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgb(var(--c-muted) / 0.10), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Élément actif du chip-toggle (réutilisable) */
+  .chip-on { @apply bg-accent/15 text-accent border-accent/40; }
+  .chip-off { @apply bg-surface-2 text-muted border-border; }
+}
+
+/* ============================================================
+   Login page — animated background & entrance animations
+   ============================================================ */
+.login-bg {
+  background:
+    radial-gradient(1200px 700px at 75% -10%, rgba(245, 52, 42, 0.14), transparent 60%),
+    radial-gradient(900px 600px at 10% 110%, rgba(120, 60, 255, 0.10), transparent 55%);
+}
+.login-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+  animation: login-drift 22s ease-in-out infinite alternate;
+}
+.login-blob-1 { width: 420px; height: 420px; top: -120px; right: -80px; background: rgba(245, 52, 42, 0.22); }
+.login-blob-2 { width: 380px; height: 380px; bottom: -140px; left: -100px; background: rgba(120, 60, 255, 0.16); animation-delay: -8s; }
+.login-blob-3 { width: 260px; height: 260px; top: 40%; left: 60%; background: rgba(255, 170, 40, 0.10); animation-delay: -15s; }
+@keyframes login-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(40px, 30px, 0) scale(1.15); }
+}
+.login-floater {
+  position: absolute;
+  bottom: -60px;
+  animation: login-float linear infinite;
+  pointer-events: none;
+  user-select: none;
+}
+@keyframes login-float {
+  from { transform: translateY(0) rotate(-8deg); }
+  to { transform: translateY(-115vh) rotate(14deg); }
+}
+.login-card-in { animation: login-pop .55s cubic-bezier(.2,.9,.3,1.2) both; }
+.login-form-in { animation: login-pop .3s ease both; }
+@keyframes login-pop {
+  from { opacity: 0; transform: translateY(14px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+.login-logo { animation: login-bob 5s ease-in-out infinite; }
+@keyframes login-bob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-7px) rotate(2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-blob, .login-floater, .login-logo, .login-card-in, .login-form-in { animation: none; }
+}

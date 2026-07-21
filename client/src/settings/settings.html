@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: file:;" />
+  <link rel="stylesheet" href="../shared/theme.css" />
+  <link rel="stylesheet" href="settings.css" />
+  <title>MemeDrop — Settings</title>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><img class="logo" src="../shared/logo.png" alt="MemeDrop" /><div><b>MemeDrop</b><div class="muted small">Client settings</div></div></div>
+      <div class="status" id="status"><span class="dot"></span><span id="statusText">…</span></div>
+    </header>
+
+    <nav class="tabs" id="tabs">
+      <button data-tab="connexion" class="active">Connection</button>
+      <button data-tab="overlay">Overlay</button>
+      <button data-tab="lecture">Playback</button>
+      <button data-tab="reseau">Network</button>
+      <button data-tab="raccourcis">Shortcuts</button>
+      <button data-tab="social">Social</button>
+      <button data-tab="options">Options</button>
+    </nav>
+
+    <main>
+      <!-- CONNECTION -->
+      <section data-panel="connexion" class="active">
+        <div class="card pad onboarding hidden" id="onboarding">
+          <h3>👋 Welcome to MemeDrop</h3>
+          <p class="muted small">Three steps to receive your friends' memes on your screen:</p>
+          <ol class="onboard-steps">
+            <li><b>Get a pairing code</b> — from the web panel (a channel's Devices tab), with the <code>/link</code> Discord command, or ask a moderator.</li>
+            <li><b>Paste the server URL + the code</b> below, then click Pair.</li>
+            <li><b>Test the placement</b> of the overlay (Overlay tab) and you're good to go 🚀</li>
+          </ol>
+        </div>
+        <div class="card pad" id="channelsCard">
+          <div class="row" style="justify-content:space-between;align-items:center;margin:0 0 6px">
+            <h3 style="margin:0">My channels</h3>
+            <button class="btn btn-ghost" id="siteBtn">🌐 Website</button>
+          </div>
+          <p class="muted small">You can be paired with several channels and pick which one to send to (last chosen = default).</p>
+          <div id="channelsList" style="margin-top:10px"></div>
+        </div>
+        <div class="card pad">
+          <h3>Pair a new channel</h3>
+          <p class="muted small">Get the <b>server URL</b> and a <b>pairing code</b> (panel → a channel's Devices tab, or the <code>/link</code> Discord command).</p>
+          <label class="label">Server URL</label>
+          <input class="input" id="serverUrl" placeholder="http://truenas.local:8080" />
+          <div class="grid2">
+            <div><label class="label">Pairing code</label><input class="input mono" id="pairCode" placeholder="ABCD1234" maxlength="12" /></div>
+            <div><label class="label">This device's name</label><input class="input" id="deviceName" placeholder="My PC" /></div>
+          </div>
+          <button class="btn btn-primary wide" id="pairBtn">Pair</button>
+          <div class="err" id="pairErr"></div>
+        </div>
+      </section>
+
+      <!-- OVERLAY -->
+      <section data-panel="overlay">
+        <div class="card pad">
+          <h3>Overlay display</h3>
+          <div class="switch"><div><b>Overlay enabled</b><div class="muted small">Show incoming memes on screen.</div></div><label class="toggle"><input type="checkbox" id="ov_enabled"><span></span></label></div>
+          <div class="switch"><div><b>Background behind text-only memes</b><div class="muted small">Turn off to show just the text, without the card.</div></div><label class="toggle"><input type="checkbox" id="ov_textbg"><span></span></label></div>
+          <label class="label">Display</label>
+          <select id="ov_display"></select>
+          <label class="label">Placement mode</label>
+          <div class="seg" id="ov_mode">
+            <button data-mode="anchor" class="active">Anchor + size</button>
+            <button data-mode="manual">Free frame (by hand)</button>
+          </div>
+
+          <!-- Anchor mode -->
+          <div id="modeAnchor">
+            <label class="label">Position (16:9 frame)</label>
+            <div class="anchor-grid" id="anchorGrid"></div>
+            <label class="label">Size: <span id="ov_sizeVal"></span>% of screen width</label>
+            <input type="range" id="ov_size" min="2" max="100" step="1" />
+            <label class="label">Edge margin: <span id="ov_marginVal"></span>%</label>
+            <input type="range" id="ov_margin" min="0" max="20" step="1" />
+          </div>
+
+          <!-- Manual mode: draggable/resizable 16:9 frame -->
+          <div id="modeManual" class="hidden">
+            <label class="label">Drag and resize the frame (locked 16:9, no minimum size)</label>
+            <div class="screen-preview" id="screenPreview">
+              <div class="place-box" id="placeBox"><span class="ratio">16:9</span><div class="handle" id="placeHandle"></div></div>
+            </div>
+          </div>
+
+          <label class="label">Opacity: <span id="ov_opacityVal"></span>%</label>
+          <input type="range" id="ov_opacity" min="10" max="100" step="1" />
+          <button class="btn btn-ghost wide" id="testBtn">Test placement</button>
+        </div>
+
+        <div class="card pad">
+          <h3>When the sender picks the placement</h3>
+          <div class="switch"><div><b>Allow senders to choose position/size</b><div class="muted small">Otherwise your placement above is always used.</div></div><label class="toggle"><input type="checkbox" id="ov_allowSender"><span></span></label></div>
+          <label class="label">Max meme size: <span id="ov_maxpxVal"></span></label>
+          <input type="range" id="ov_maxpx" min="0" max="3840" step="40" />
+          <div class="muted small">0 = unlimited. Caps the maximum width (px) of incoming memes when the sender chooses the size.</div>
+        </div>
+      </section>
+
+      <!-- PLAYBACK -->
+      <section data-panel="lecture">
+        <div class="card pad">
+          <h3>Playback</h3>
+          <label class="label">Max volume: <span id="pb_volVal"></span>%</label>
+          <input type="range" id="pb_vol" min="0" max="100" step="1" />
+          <p class="muted small">A ceiling: a meme sent louder is capped to this value; a quieter one keeps its original volume.</p>
+          <div class="switch"><div><b>Mute everything</b></div><label class="toggle"><input type="checkbox" id="pb_mute"><span></span></label></div>
+          <label class="label">Reception mode</label>
+          <div class="seg" id="pb_mode">
+            <button data-mode="queue" class="active">Queue</button>
+            <button data-mode="concurrent">Simultaneous</button>
+          </div>
+          <label class="label" id="cdLabel">Cooldown between memes (queue mode): <span id="pb_cdVal"></span> s</label>
+          <input type="range" id="pb_cd" min="0" max="60" step="1" />
+          <label class="label" id="concLabel">Max simultaneous memes: <span id="pb_concVal"></span></label>
+          <input type="range" id="pb_conc" min="1" max="12" step="1" />
+          <h4>Max duration per type</h4>
+          <div class="grid4">
+            <div><label class="label">Image (s)</label><input class="input" type="number" id="pb_img" min="1" max="60"></div>
+            <div><label class="label">GIF (s)</label><input class="input" type="number" id="pb_gif" min="1" max="60"></div>
+            <div><label class="label">Video (s)</label><input class="input" type="number" id="pb_vid" min="1" max="120"></div>
+            <div><label class="label">Sound (s)</label><input class="input" type="number" id="pb_aud" min="1" max="120"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- NETWORK -->
+      <section data-panel="reseau">
+        <div class="card pad">
+          <h3>Network</h3>
+          <label class="label">Max download rate: <span id="net_val"></span> MB/s</label>
+          <input type="range" id="net_rate" min="0.5" max="50" step="0.5" />
+          <p class="muted small">Caps the bandwidth used to download incoming memes. 0.5 = very light, higher = faster. Default: 5 MB/s.</p>
+        </div>
+      </section>
+
+      <!-- SHORTCUTS -->
+      <section data-panel="raccourcis">
+        <div class="card pad">
+          <h3>Reaction emojis</h3>
+          <p class="muted small">The 4 emojis triggered by the reaction shortcuts. Click to change.</p>
+          <div class="row" id="reactionPickers" style="gap:8px"></div>
+          <div class="emoji-pop hidden" id="reactPop"></div>
+        </div>
+        <div class="card pad">
+          <h3>Global shortcuts</h3>
+          <p class="muted small">Click a field then press the desired key combination.</p>
+          <div class="grid2">
+            <div><label class="label">Open the editor</label><input class="input sc" id="sc_editor" readonly></div>
+            <div><label class="label">Toggle overlay</label><input class="input sc" id="sc_overlay" readonly></div>
+            <div><label class="label">Mute / unmute</label><input class="input sc" id="sc_mute" readonly></div>
+            <div><label class="label">Do not disturb</label><input class="input sc" id="sc_dnd" readonly></div>
+            <div><label class="label">React <span id="re1">😂</span> to last meme</label><input class="input sc" id="sc_react1" readonly></div>
+            <div><label class="label">React <span id="re2">🔥</span> to last meme</label><input class="input sc" id="sc_react2" readonly></div>
+            <div><label class="label">React <span id="re3">💀</span> to last meme</label><input class="input sc" id="sc_react3" readonly></div>
+            <div><label class="label">React <span id="re4">❤️</span> to last meme</label><input class="input sc" id="sc_react4" readonly></div>
+            <div><label class="label">Block the last meme's sender</label><input class="input sc" id="sc_blockLast" readonly></div>
+            <div><label class="label">Replay the last meme</label><input class="input sc" id="sc_replayLast" readonly></div>
+          </div>
+          <button class="btn btn-ghost wide" id="scResetBtn">↺ Reset shortcuts to defaults</button>
+        </div>
+      </section>
+
+      <!-- SOCIAL -->
+      <section data-panel="social">
+        <div class="card pad">
+          <h3>My schedules</h3>
+          <p class="muted small">Memes scheduled to be replayed later.</p>
+          <div id="schedList" style="margin-top:10px"></div>
+        </div>
+        <div class="card pad">
+          <h3>Friends' settings</h3>
+          <p class="muted small">See what your friends prefer to pick the best kind of meme.</p>
+          <div id="membersList" style="margin-top:10px"></div>
+        </div>
+        <div class="card pad">
+          <h3>🚫 Blocked senders</h3>
+          <p class="muted small">You will no longer receive memes from these people. Shortcut: block the last meme's sender.</p>
+          <div class="row" style="gap:6px;margin-top:8px">
+            <select id="blockPick" class="input" style="flex:1"></select>
+            <button class="btn btn-ghost" id="blockAdd">Block</button>
+          </div>
+          <div id="blocksList" style="margin-top:10px"></div>
+        </div>
+      </section>
+
+      <!-- OPTIONS -->
+      <section data-panel="options">
+        <div class="card pad">
+          <h3>Options</h3>
+          <label class="label">Double-clicking the tray icon opens:</label>
+          <select id="opt_dblclick">
+            <option value="settings">Settings</option>
+            <option value="editor">The meme editor</option>
+            <option value="none">Nothing</option>
+          </select>
+          <div style="height:10px"></div>
+          <div class="switch"><div><b>Entrance animations</b></div><label class="toggle"><input type="checkbox" id="fun_anim"><span></span></label></div>
+          <div class="switch"><div><b>Floating reactions</b><div class="muted small">Animated emojis on the overlay when people react.</div></div><label class="toggle"><input type="checkbox" id="fun_float"><span></span></label></div>
+          <div class="switch"><div><b>Show "Seen by"</b><div class="muted small">Who displayed my memes on their screen.</div></div><label class="toggle"><input type="checkbox" id="fun_seen"><span></span></label></div>
+          <div class="switch"><div><b>Milestone effects (confetti)</b><div class="muted small">Confetti + sound when a meme blows up.</div></div><label class="toggle"><input type="checkbox" id="fun_celebrate"><span></span></label></div>
+          <div class="switch"><div><b>Notification sound</b><div class="muted small">A small "pop" when a meme arrives.</div></div><label class="toggle"><input type="checkbox" id="fun_notify"><span></span></label></div>
+          <div class="switch"><div><b>Do not disturb</b><div class="muted small">Ignore incoming memes.</div></div><label class="toggle"><input type="checkbox" id="fun_dnd"><span></span></label></div>
+          <div class="switch"><div><b>Launch at Windows startup</b></div><label class="toggle"><input type="checkbox" id="opt_startup"><span></span></label></div>
+          <div class="row" style="margin-top:16px">
+            <button class="btn btn-ghost" id="openEditorBtn">Open the meme editor</button>
+            <button class="btn btn-ghost" id="guidelinesBtn">View the guidelines</button>
+            <button class="btn btn-danger" id="resetBtn">Reset settings</button>
+          </div>
+          <p class="muted small" style="margin-top:16px">MemeDrop is open-source (MIT). The client never injects into other applications, never captures your screen and never reads external memory.</p>
+        </div>
+
+        <!-- About (#49) -->
+        <div class="card pad">
+          <h3>About</h3>
+          <div class="about-row"><span class="muted">Version</span><b id="aboutVersion">—</b></div>
+          <div class="about-row"><span class="muted">Electron</span><b id="aboutElectron">—</b></div>
+          <div class="about-row"><span class="muted">License</span><b>MIT</b></div>
+          <div class="row" style="margin-top:12px">
+            <button class="btn btn-ghost" id="siteBtn2">🌐 Server website</button>
+            <button class="btn btn-ghost" id="aboutReconnect">🔄 Reconnect</button>
+          </div>
+          <p class="muted small" id="aboutStatus" style="margin-top:10px"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal hidden" id="guidelinesModal">
+    <div class="modal-box card pad">
+      <h3>Community guidelines</h3>
+      <div class="guidelines" id="guidelinesText"></div>
+      <div class="row end"><button class="btn btn-ghost" id="glClose">Close</button><button class="btn btn-primary" id="glAccept">I accept</button></div>
+    </div>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

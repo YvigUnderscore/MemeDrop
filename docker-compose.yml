@@ -1,0 +1,52 @@
+# ============================================================
+#  MemeDrop — server deployment
+#  Zero-config quick start:   docker compose up -d
+#  (the admin password is printed in the logs on first start)
+#  Optional tuning:           cp .env.example .env  then edit
+#  TrueNAS Scale:             see docs/INSTALL_TRUENAS.md
+# ============================================================
+
+services:
+  memedrop:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    image: memedrop:latest
+    container_name: memedrop
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      # Everything is OPTIONAL. Missing secrets are auto-generated on first boot
+      # and persisted in /data/.secrets.json ; the admin password is printed in
+      # the logs on first start (docker logs memedrop).
+      PORT: 8080
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
+      JWT_SECRET: ${JWT_SECRET:-}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      # Discord bot + OAuth sign-in (all optional)
+      DISCORD_TOKEN: ${DISCORD_TOKEN:-}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI:-}
+      # GIF search in the editor (optional) — https://developers.giphy.com/
+      GIPHY_API_KEY: ${GIPHY_API_KEY:-}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-25}
+      MAX_VIDEO_DURATION_S: ${MAX_VIDEO_DURATION_S:-15}
+      MAX_AUDIO_DURATION_S: ${MAX_AUDIO_DURATION_S:-15}
+      MAX_TEXT_LENGTH: ${MAX_TEXT_LENGTH:-280}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      NODE_ENV: production
+      DATA_DIR: /data
+    volumes:
+      # Persistance : base SQLite + médias transcodés.
+      # Sur TrueNAS, remplacez par un chemin de dataset, ex: /mnt/tank/apps/memedrop:/data
+      - ./data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

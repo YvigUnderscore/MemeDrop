@@ -1,0 +1,58 @@
+import { Router } from 'express';
+import crypto from 'node:crypto';
+import { z } from 'zod';
+import { db, now, audit } from '../db.js';
+import { panelAuth, requireStaff } from '../auth.js';
+import { asyncHandler, loadChannel } from './helpers.js';
+
+// Monté sur /api/channels/:channelId/devices
+const router = Router({ mergeParams: true });
+router.use(panelAuth, requireStaff, loadChannel);
+
+// Code d'appairage lisible (évite 0/O, 1/I).
+function makePairingCode() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.randomBytes(8);
+  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
+}
+
+router.get('/', (req, res) => {
+  res.json(db.prepare(`SELECT id, name, discord_id, last_seen, revoked, created_at
+      FROM devices WHERE channel_id = ? ORDER BY created_at DESC`).all(req.channel.id));
+});
+
+router.post('/pair-code', asyncHandler((req, res) => {
+  const b = z.object({
+    label: z.string().max(60).optional().default(''),
+    discordId: z.string().regex(/^\d{5,25}$/).optional().or(z.literal('')).default(''),
+    ttlMinutes: z.number().min(1).max(1440).optional().default(30),
+  }).parse(req.body);
+  const code = makePairingCode();
+  const expires = now() + b.ttlMinutes * 60000;
+  db.prepare('INSERT INTO pairing_codes (code, channel_id, discord_id, label, expires_at, created_at) VALUES (?,?,?,?,?,?)')
+    .run(code, req.channel.id, b.discordId || '', b.label, expires, now());
+  audit(req.user.username, 'device.paircode', { channel: req.channel.slug, code });
+  res.status(201).json({ code, expiresAt: expires, channel: req.channel.slug });
+}));
+
+router.patch('/:did', asyncHandler((req, res) => {
+  const b = z.object({
+    name: z.string().max(60).optional(),
+    discordId: z.string().regex(/^\d{5,25}$/).optional().or(z.literal('')),
+  }).parse(req.body);
+  const dev = db.prepare('SELECT * FROM devices WHERE id = ? AND channel_id = ?').get(req.params.did, req.channel.id);
+  if (!dev) return res.status(404).json({ error: 'Not found' });
+  db.prepare('UPDATE devices SET name = COALESCE(?, name), discord_id = COALESCE(?, discord_id) WHERE id = ?')
+    .run(b.name ?? null, b.discordId ?? null, dev.id);
+  res.json({ ok: true });
+}));
+
+router.delete('/:did', asyncHandler((req, res) => {
+  const dev = db.prepare('SELECT * FROM devices WHERE id = ? AND channel_id = ?').get(req.params.did, req.channel.id);
+  if (!dev) return res.status(404).json({ error: 'Not found' });
+  db.prepare('UPDATE devices SET revoked = 1 WHERE id = ?').run(dev.id);
+  audit(req.user.username, 'device.revoke', { channel: req.channel.slug, device: dev.id });
+  res.json({ ok: true });
+}));
+
+export default router;

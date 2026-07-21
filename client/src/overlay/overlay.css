@@ -1,0 +1,264 @@
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+#root { position: fixed; inset: 0; pointer-events: none; }
+
+.stage {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, opacity;
+}
+.stage .media-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 18, 0.0);
+}
+.overlay-layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.stage img, .stage video {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+}
+
+/* Carte texte pur */
+.text-card {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 77, 46, 0.94), rgba(217, 15, 24, 0.94));
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6%;
+}
+
+/* Carte audio */
+.audio-card {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(20, 20, 31, 0.95), rgba(28, 28, 43, 0.95));
+  border: 1px solid rgba(245, 52, 42, 0.4);
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4%;
+}
+.audio-card .bars { display: flex; align-items: flex-end; gap: 4px; height: 30%; }
+.audio-card .bars span { width: 6px; background: linear-gradient(#ff4d2e, #d90f18); border-radius: 3px; animation: eq 0.9s ease-in-out infinite; }
+@keyframes eq { 0%, 100% { height: 20%; } 50% { height: 100%; } }
+
+/* Texte overlay sur média — style meme lisible partout */
+.meme-text {
+  position: absolute;
+  left: 0; right: 0;
+  padding: 0 4%;
+  text-align: center;
+  font-weight: 800;
+  font-family: 'Impact', 'Arial Black', system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.05;
+  color: #fff;
+  --stroke: 2px;
+  -webkit-text-stroke: var(--stroke) #000;
+  paint-order: stroke fill;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  word-break: break-word;
+}
+.meme-text.pos-top { top: 4%; }
+.meme-text.pos-center { top: 50%; transform: translateY(-50%); }
+.meme-text.pos-bottom { bottom: 4%; }
+/* Texte dans la carte dégradée (mémé 100% texte avec fond) */
+.meme-text.in-card { position: static; transform: none; -webkit-text-stroke: calc(var(--stroke) * 0.6) rgba(0, 0, 0, 0.35); }
+/* Texte sans fond : bien lisible sur n'importe quel arrière-plan */
+.meme-text.no-bg { text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9), 0 0 4px rgba(0, 0, 0, 0.8); }
+
+.sender-tag {
+  position: absolute;
+  top: -34px; left: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 800 16px/1 system-ui, sans-serif;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 5px 14px 5px 6px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.sender-tag .sender-name {
+  letter-spacing: 0.2px;
+}
+
+.sender-tag .sender-avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+/* Animations d'entrée / sortie */
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes slide-in { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+@keyframes slide-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(40px); } }
+@keyframes bounce-in { 0% { opacity: 0; transform: scale(0.5); } 60% { opacity: 1; transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-10px); } 40% { transform: translateX(10px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+
+.anim-fade-in { animation: fade-in .35s ease both; }
+.anim-fade-out { animation: fade-out .35s ease both; }
+.anim-slide-in { animation: slide-in .4s cubic-bezier(.2,.8,.2,1) both; }
+.anim-slide-out { animation: slide-out .35s ease both; }
+.anim-bounce-in { animation: bounce-in .55s cubic-bezier(.2,.9,.3,1.3) both; }
+.anim-shake { animation: bounce-in .5s both, shake .5s .5s both; }
+.anim-none-in { animation: fade-in .12s both; }
+
+/* Toast de réaction / action (#6/#15) — coin bas-droit, discret. */
+.md-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  max-width: 60vw;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgba(20, 20, 24, 0.82);
+  color: #fff;
+  font: 600 16px/1.2 system-ui, sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .3s ease, transform .3s ease;
+  pointer-events: none;
+}
+.md-toast.show { opacity: 1; transform: none; }
+
+/* Compte à rebours de cooldown (#33) — coin bas-gauche, discret */
+.md-cooldown {
+  position: fixed;
+  left: 24px; bottom: 24px;
+  display: none; align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(20, 20, 24, 0.78);
+  color: #fff;
+  font: 600 14px/1 system-ui, sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+/* Barre de progression de téléchargement (#13) — coin bas-gauche */
+.md-download {
+  position: fixed; left: 24px; bottom: 24px;
+  display: none; align-items: center; gap: 10px;
+  padding: 8px 14px; border-radius: 999px;
+  background: rgba(20, 20, 24, 0.78); border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); backdrop-filter: blur(6px);
+  pointer-events: none; font-size: 14px;
+}
+.md-dl-track { width: 120px; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
+.md-dl-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #ff4d2e, #d90f18); transition: width .15s ease; }
+
+/* Carte d'erreur média (#45) */
+.error-card {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(60, 20, 20, 0.95), rgba(30, 14, 14, 0.95));
+  border: 1px solid rgba(251, 113, 133, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  color: #fda4af;
+  font: 700 clamp(14px, 5cqw, 28px)/1.2 system-ui, sans-serif;
+  container-type: inline-size;
+}
+
+/* Réactions flottantes (#3) — emoji qui monte et s'estompe */
+.md-float {
+  position: fixed;
+  bottom: 12vh;
+  font-size: 44px;
+  line-height: 1;
+  pointer-events: none;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+  animation: md-float-up 2.1s cubic-bezier(.25,.6,.3,1) forwards;
+}
+@keyframes md-float-up {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4) rotate(0); }
+  15% { opacity: 1; transform: translate(calc(var(--drift) * 0.2), -8vh) scale(1.15) rotate(var(--rot)); }
+  100% { opacity: 0; transform: translate(var(--drift), -46vh) scale(1) rotate(var(--rot)); }
+}
+
+/* « Vu par » (#1) — pastilles cumulées en haut à droite */
+.md-seen {
+  position: fixed;
+  top: 22px; right: 22px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+  pointer-events: none;
+  transition: opacity .5s ease;
+}
+.md-seen.fade { opacity: 0; }
+.md-seen-pill {
+  font: 600 13px/1 system-ui, sans-serif;
+  color: #fff;
+  background: rgba(20, 20, 24, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 6px 11px;
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateX(16px);
+  transition: opacity .3s ease, transform .3s ease;
+  white-space: nowrap;
+}
+.md-seen-pill.show { opacity: 1; transform: none; }
+
+/* Effets de seuil (#7) — bannière + confettis */
+.md-milestone {
+  position: fixed;
+  top: 12vh; left: 50%;
+  transform: translate(-50%, -12px) scale(0.9);
+  font: 800 34px/1 'Impact', 'Arial Black', system-ui, sans-serif;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 14px 28px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 77, 46, 0.95), rgba(217, 15, 24, 0.95));
+  box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.7);
+  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.35);
+  paint-order: stroke fill;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .35s ease, transform .35s cubic-bezier(.2,.9,.3,1.3);
+}
+.md-milestone.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+
+.md-confetti {
+  position: fixed;
+  top: -20px;
+  width: 10px; height: 14px;
+  border-radius: 2px;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: md-confetti-fall var(--dur, 2s) linear var(--delay, 0s) forwards;
+}
+@keyframes md-confetti-fall {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  100% { opacity: 0; transform: translate(var(--x, 0), 110vh) rotate(var(--rot, 360deg)); }
+}
