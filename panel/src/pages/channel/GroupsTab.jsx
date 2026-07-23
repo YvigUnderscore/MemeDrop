@@ -37,7 +37,7 @@ export default function GroupsTab({ channel }) {
       toast.success('Group saved'); setOpen(false); load();
     } catch (e) { toast.error(e.message); } finally { setBusy(false); }
   };
-  const remove = async (g) => { if (!(await confirm({ message: `Supprimer le groupe "${g.name}" ?`, danger: true, confirmLabel: 'Supprimer' }))) return; try { await ChannelAPI.removeGroup(channel.id, g.id); load(); } catch (e) { toast.error(e.message); } };
+  const remove = async (g) => { if (!(await confirm({ message: `Delete the group "${g.name}"?`, danger: true, confirmLabel: 'Delete' }))) return; try { await ChannelAPI.removeGroup(channel.id, g.id); load(); } catch (e) { toast.error(e.message); } };
 
   const nameOf = (id) => whitelist.find((w) => w.discord_id === id)?.discord_username || id;
 
@@ -75,9 +75,9 @@ export default function GroupsTab({ channel }) {
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Modifier le groupe' : 'Nouveau groupe'} wide>
+      <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit group' : 'New group'} wide>
         <div className="space-y-4">
-          <label className="block"><span className="label">Nom du groupe</span>
+          <label className="block"><span className="label">Group name</span>
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Squad gaming" autoFocus /></label>
           <div>
             <span className="label">Members ({members.length} selected)</span>
@@ -93,8 +93,8 @@ export default function GroupsTab({ channel }) {
             )}
           </div>
           <div className="flex justify-end gap-2">
-            <button className="btn-ghost" onClick={() => setOpen(false)}>Annuler</button>
-            <button className="btn-primary" disabled={busy || !name || members.length === 0} onClick={save}>{busy ? <Spinner /> : <Save size={16} />} Enregistrer</button>
+            <button className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
+            <button className="btn-primary" disabled={busy || !name || members.length === 0} onClick={save}>{busy ? <Spinner /> : <Save size={16} />} Save</button>
           </div>
         </div>
       </Modal>

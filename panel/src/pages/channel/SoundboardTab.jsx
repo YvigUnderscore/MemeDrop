@@ -65,7 +65,7 @@ export default function SoundboardTab({ channel }) {
           <h3 className="font-bold flex items-center gap-2"><Music size={18} /> Shared soundboard</h3>
           <p className="text-sm text-muted">Sounds curated by moderators, available to every channel member.</p>
         </div>
-        <button className="btn-primary" onClick={() => setOpen(true)}><Upload size={16} /> Ajouter un son</button>
+        <button className="btn-primary" onClick={() => setOpen(true)}><Upload size={16} /> Add a sound</button>
       </div>
 
       {!rows ? <Spinner className="text-accent" /> : rows.length === 0 ? (
@@ -102,19 +102,19 @@ export default function SoundboardTab({ channel }) {
 
       <Modal open={open} onClose={() => setOpen(false)} title="Add a shared sound">
         <div className="space-y-3">
-          <label className="block"><span className="label">Fichier audio</span>
+          <label className="block"><span className="label">Audio file</span>
             <input ref={fileRef} type="file" accept="audio/*" className="input !py-2"
               onChange={(e) => setForm({ ...form, file: e.target.files?.[0] || null, name: form.name || (e.target.files?.[0]?.name || '').replace(/\.[^.]+$/, '') })} />
           </label>
-          <label className="block"><span className="label">Nom</span>
+          <label className="block"><span className="label">Name</span>
             <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Air horn" /></label>
           <label className="block"><span className="label">Category (optional)</span>
             <input className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="FX, Punchlines…" list="sb-cats" />
             <datalist id="sb-cats">{categories.map((c) => <option key={c} value={c} />)}</datalist>
           </label>
           <div className="flex justify-end gap-2 pt-2">
-            <button className="btn-ghost" onClick={() => setOpen(false)}>Annuler</button>
-            <button className="btn-primary" disabled={busy || !form.file} onClick={add}>{busy ? <Spinner /> : <Upload size={16} />} Ajouter</button>
+            <button className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
+            <button className="btn-primary" disabled={busy || !form.file} onClick={add}>{busy ? <Spinner /> : <Upload size={16} />} Add</button>
           </div>
           <p className="text-xs text-muted">The file is re-transcoded and sanitized server-side, like any upload.</p>
         </div>
@@ -123,13 +123,13 @@ export default function SoundboardTab({ channel }) {
       {edit && (
         <Modal open onClose={() => setEdit(null)} title="Edit the sound">
           <div className="space-y-3">
-            <label className="block"><span className="label">Nom</span>
+            <label className="block"><span className="label">Name</span>
               <input className="input" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></label>
             <label className="block"><span className="label">Category</span>
               <input className="input" value={edit.category} onChange={(e) => setEdit({ ...edit, category: e.target.value })} list="sb-cats" /></label>
             <div className="flex justify-end gap-2 pt-2">
-              <button className="btn-ghost" onClick={() => setEdit(null)}>Annuler</button>
-              <button className="btn-primary" onClick={saveEdit}>Enregistrer</button>
+              <button className="btn-ghost" onClick={() => setEdit(null)}>Cancel</button>
+              <button className="btn-primary" onClick={saveEdit}>Save</button>
             </div>
           </div>
         </Modal>

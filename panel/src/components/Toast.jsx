@@ -40,10 +40,10 @@ export function ToastProvider({ children }) {
                   onClick={() => { try { t.action(); } finally { remove(t.id); } }}
                   className="text-accent hover:brightness-125 font-semibold text-sm flex items-center gap-1 shrink-0"
                 >
-                  <Undo2 size={14} /> Annuler
+                  <Undo2 size={14} /> Undo
                 </button>
               )}
-              <button onClick={() => remove(t.id)} aria-label="Fermer la notification" className="text-muted hover:text-ink"><X size={16} /></button>
+              <button onClick={() => remove(t.id)} aria-label="Dismiss notification" className="text-muted hover:text-ink"><X size={16} /></button>
             </div>
           );
         })}

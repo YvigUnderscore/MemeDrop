@@ -1,29 +1,29 @@
 import { db } from './db.js';
 
-export const DEFAULT_GUIDELINES = `# Règles de la communauté MemeDrop
+export const DEFAULT_GUIDELINES = `# MemeDrop community guidelines
 
-En envoyant un meme, tu t'engages à respecter ces règles. Le non-respect
-entraîne un avertissement, un retrait du droit d'envoi, puis un bannissement.
+By sending a meme you agree to follow these rules. Breaking them leads to a
+warning, then losing your right to send, then a ban.
 
-## ✅ Autorisé
-- L'humour, les vannes entre potes, les memes, le second degré.
-- **L'humour noir est toléré** — tant qu'il reste dans le respect des personnes.
+## ✅ Allowed
+- Humor, banter between friends, memes, second-degree jokes.
+- **Dark humor is tolerated** — as long as it stays respectful of people.
 
-## ⛔ Interdit
-- Contenu **pornographique**, sexuellement explicite ou suggestif impliquant
-  des mineurs (tolérance zéro, signalement immédiat).
-- Contenu **raciste**, antisémite, homophobe, transphobe, validiste ou toute
-  incitation à la haine visant un groupe.
-- **Harcèlement**, menaces, doxxing, contenu visant à nuire à une personne réelle.
-- Violence gratuite, gore choquant, apologie du terrorisme.
-- Contenu illégal, malveillant, ou destiné à tromper/arnaquer.
+## ⛔ Forbidden
+- **Pornographic**, sexually explicit or suggestive content involving minors
+  (zero tolerance, reported immediately).
+- **Racist**, antisemitic, homophobic, transphobic, ableist content, or any
+  incitement to hatred targeting a group.
+- **Harassment**, threats, doxxing, content meant to harm a real person.
+- Gratuitous violence, shocking gore, glorification of terrorism.
+- Illegal, malicious content, or content meant to deceive/scam.
 
-## 🤝 Bon sens
-- Un meme doit faire rire, pas blesser. Dans le doute, s'abstenir.
-- Respecte les cooldowns et ne spamme pas l'écran des autres.
-- Les modérateurs peuvent retirer un contenu et sanctionner à tout moment.
+## 🤝 Common sense
+- A meme should make people laugh, not hurt. When in doubt, don't.
+- Respect cooldowns and don't spam other people's screens.
+- Moderators can remove content and sanction at any time.
 
-Signaler un contenu : bouton « Signaler » sur le client, ou \`/report\` sur Discord.`;
+Report content: the “Report” button in the client, or \`/report\` on Discord.`;
 
 export function getGuidelines() {
   const row = db.prepare("SELECT value FROM global_settings WHERE key = 'guidelines'").get();

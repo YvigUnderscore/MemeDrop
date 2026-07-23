@@ -61,9 +61,9 @@ export default function Guidelines() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-extrabold flex items-center gap-2"><ScrollText size={24} /> Guidelines</h1>
-          <p className="text-muted text-sm">Rules shown in the client and via <code className="text-accent">/guidelines</code> sur Discord.</p>
+          <p className="text-muted text-sm">Rules shown in the client and via <code className="text-accent">/guidelines</code> on Discord.</p>
         </div>
-        {isAdmin && <button className="btn-primary" disabled={busy} onClick={save}>{busy ? <Spinner /> : <Save size={16} />} Enregistrer</button>}
+        {isAdmin && <button className="btn-primary" disabled={busy} onClick={save}>{busy ? <Spinner /> : <Save size={16} />} Save</button>}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5">
@@ -87,7 +87,7 @@ export default function Guidelines() {
             <div className="flex items-center gap-3">
               <input type="number" className="input w-28" min={0} max={3650} value={retention} onChange={(e) => setRetention(e.target.value)} />
               <span className="text-muted text-sm">days</span>
-              <button className="btn-primary" onClick={saveRetention}><Save size={16} /> Enregistrer</button>
+              <button className="btn-primary" onClick={saveRetention}><Save size={16} /> Save</button>
             </div>
           </Card>
           <Card>

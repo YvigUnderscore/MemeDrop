@@ -60,7 +60,7 @@ export default function Moderation() {
       </div>
 
       <Card>
-        <h2 className="font-bold mb-4 flex items-center gap-2"><Clock size={18} /> En attente de validation
+        <h2 className="font-bold mb-4 flex items-center gap-2"><Clock size={18} /> Pending review
           {pending && pending.length > 0 && <Badge tone="warning">{pending.length}</Badge>}
         </h2>
         {!pending ? <Spinner className="text-accent" /> : pending.length === 0 ? (
@@ -85,7 +85,7 @@ export default function Moderation() {
       </Card>
 
       <Card>
-        <h2 className="font-bold mb-4 flex items-center gap-2"><ShieldAlert size={18} /> Signalements</h2>
+        <h2 className="font-bold mb-4 flex items-center gap-2"><ShieldAlert size={18} /> Reports</h2>
         {!reports ? <Spinner className="text-accent" /> : reports.length === 0 ? (
           <EmptyState icon={ShieldAlert} title="No reports" hint="All quiet for now." />
         ) : (

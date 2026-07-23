@@ -65,7 +65,7 @@ export default function ChannelDetail() {
           </div>
           <div className="text-xs text-muted">/{channel.slug}</div>
         </div>
-        {isAdmin && <button onClick={deleteChannel} className="btn-danger"><Trash2 size={16} /> Supprimer</button>}
+        {isAdmin && <button onClick={deleteChannel} className="btn-danger"><Trash2 size={16} /> Delete</button>}
       </div>
 
       <div className="flex gap-1 overflow-x-auto border-b border-border pb-px">
