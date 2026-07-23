@@ -25,6 +25,9 @@ node_modules/
 # --- Runtime data (SQLite DB, media, tmp) ---
 data/
 server/data/
+# but keep source data files bundled with the app (default wordlists, etc.)
+!server/src/data/
+!server/src/data/**
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
