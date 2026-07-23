@@ -6,6 +6,13 @@ appId: com.memedrop.client
 productName: MemeDrop
 copyright: MIT © MemeDrop
 
+# Publication des releases sur GitHub (npm run release, avec GH_TOKEN défini).
+# Le client vérifie github.com/YvigUnderscore/MemeDrop/releases/latest au démarrage.
+publish:
+  provider: github
+  owner: YvigUnderscore
+  repo: MemeDrop
+
 directories:
   output: dist
   buildResources: build

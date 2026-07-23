@@ -4,11 +4,12 @@
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const {
-  app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, screen, nativeImage, shell,
+  app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, screen, nativeImage, shell, dialog,
 } = require('electron');
 const { Store, DEFAULTS } = require('./store.js');
 const { Connection } = require('./connection.js');
 const { OverlayManager } = require('./overlayManager.js');
+const updater = require('./updater.js');
 
 // Empêche plusieurs instances.
 if (!app.requestSingleInstanceLock()) { app.quit(); process.exit(0); }
@@ -273,17 +274,26 @@ function updateTray() {
   const dndActive = cfg.fun.doNotDisturb && (!cfg.fun.dndUntil || Date.now() < cfg.fun.dndUntil);
   const dndLabel = dndActive && cfg.fun.dndUntil ? `Do not disturb (until ${new Date(cfg.fun.dndUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})` : 'Do not disturb';
 
+  // Item de mise à jour : visible seulement si une version plus récente existe.
+  const upd = updater.getLastResult();
+  const updateItem = upd.updateAvailable ? [
+    { label: `⬇️  Update available — v${upd.latest}`, click: () => updater.openDownload() },
+    { type: 'separator' },
+  ] : [];
+
   const menu = Menu.buildFromTemplate([
     { label: `MemeDrop — ${statusLabel}`, enabled: false },
     { label: active ? `Channel: ${active.channel?.name}` : 'No channel', enabled: false },
     ...channelsSub,
     { type: 'separator' },
+    ...updateItem,
     { label: 'Replay last meme', accelerator: cfg.shortcuts.replayLast, enabled: !!lastIncoming, click: () => replayLast() },
     { label: 'React to last meme', submenu: emojis.map((e, i) => ({ label: e, accelerator: cfg.shortcuts[`react${i + 1}`], click: () => reactToLast(e) })) },
     { type: 'separator' },
     { label: 'Meme editor (web)…', accelerator: cfg.shortcuts.openEditor, click: openWebEditor },
     { label: 'Settings…', click: openSettings },
     { label: 'Open website', click: openWebsite },
+    { label: 'Check for updates…', click: () => manualUpdateCheck() },
     { type: 'separator' },
     { label: 'Overlay enabled', type: 'checkbox', checked: cfg.overlay.enabled, click: () => { store.set({ overlay: { enabled: !cfg.overlay.enabled } }); overlay.pushSettings(); updateTray(); } },
     { label: 'Mute everything', type: 'checkbox', checked: cfg.playback.muteAll, click: () => { store.set({ playback: { muteAll: !cfg.playback.muteAll } }); overlay.pushSettings(); updateTray(); } },
@@ -302,6 +312,24 @@ function updateTray() {
   ]);
   tray.setToolTip(`MemeDrop — ${statusLabel}`);
   tray.setContextMenu(menu);
+}
+
+// Vérification manuelle (menu tray) : donne toujours un retour, y compris
+// « à jour » ou en cas d'échec réseau — contrairement au check silencieux.
+function manualUpdateCheck() {
+  updater.checkForUpdates({ notify: false }).then((r) => {
+    updateTray();
+    if (r.error) {
+      dialog.showMessageBox({ type: 'warning', title: 'MemeDrop', message: 'Update check failed', detail: r.error });
+    } else if (r.updateAvailable) {
+      dialog.showMessageBox({
+        type: 'info', title: 'MemeDrop', message: `Version ${r.latest} is available`,
+        detail: `You have ${r.current}. Download the new version?`, buttons: ['Download', 'Later'], defaultId: 0, cancelId: 1,
+      }).then((res) => { if (res.response === 0) updater.openDownload(); });
+    } else {
+      dialog.showMessageBox({ type: 'info', title: 'MemeDrop', message: 'You are up to date', detail: `Version ${r.current}` });
+    }
+  });
 }
 
 function sendTestMeme() {
@@ -437,6 +465,11 @@ app.whenReady().then(() => {
   // Connexion auto si déjà appairé.
   if (store.get().accounts.length) connection.connect();
   else openSettings();
+
+  // Mise à jour : vérification différée au démarrage (notifie si dispo), puis
+  // toutes les 6 h. Le résultat rafraîchit le menu tray (item « Update available »).
+  setTimeout(() => updater.checkForUpdates().then(() => updateTray()), 8000);
+  setInterval(() => updater.checkForUpdates().then(() => updateTray()), 6 * 60 * 60 * 1000);
 
   app.on('second-instance', () => openSettings());
 });

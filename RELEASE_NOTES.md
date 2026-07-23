@@ -1,3 +1,22 @@
+# MemeDrop v1.2.0 — "Reliable Delivery"
+
+Reliability release: fixes memes arriving empty, the client silently going deaf, and broken images in the panel/editor. Adds in-app update notifications.
+
+## 🐛 Fixes
+
+### Client (Windows)
+- **"Sender name but no content"** — media downloads now have a timeout, handle write errors, and reject truncated files instead of delivering an unreadable media. A media meme whose file failed to download now shows a clear "⚠️ Media failed to load" card instead of a silent empty box.
+- **"The app stops receiving, I have to reboot it"** — the WebSocket now detects silently-dead ("half-open") connections (Wi-Fi change, sleep/resume) and reconnects automatically, plus a 15 s guard against stuck "connecting" states.
+- A failed media download no longer discards the whole meme — it still displays.
+
+### Panel & editor
+- **Broken images fixed** — the server CSP now allows Discord avatars (`cdn.discordapp.com`) and GIPHY thumbnails (`*.giphy.com`).
+
+## ✨ New
+- **In-app updates** — the client checks GitHub Releases on launch (and every 6 h): a system notification and a tray "Update available" item link straight to the download. Manual check via the tray menu.
+
+---
+
 # MemeDrop v1.1.0 — "Corner Pin"
 
 The biggest MemeDrop release yet: full English UI, one-click Discord sign-in for everyone, a serious editor upgrade, and a zero-config install.

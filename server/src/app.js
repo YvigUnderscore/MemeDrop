@@ -62,8 +62,8 @@ export function createApp() {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        // cdn.discordapp.com : avatars Discord des expéditeurs affichés dans le panel.
-        imgSrc: ["'self'", 'data:', 'blob:', 'https://cdn.discordapp.com'],
+        // cdn.discordapp.com : avatars Discord ; *.giphy.com : vignettes GIF de l'éditeur (/compose).
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://cdn.discordapp.com', 'https://*.giphy.com'],
         mediaSrc: ["'self'", 'blob:'],
         connectSrc: ["'self'", 'ws:', 'wss:'],
         fontSrc: ["'self'", 'data:'],
