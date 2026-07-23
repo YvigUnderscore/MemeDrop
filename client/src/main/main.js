@@ -147,8 +147,10 @@ async function handleIncomingMeme(meme) {
     const temps = [];
     let local = null;
     if (meme.media && meme.media.url) {
-      local = await connection.downloadMedia(meme);
-      if (local) temps.push(local);
+      // Échec de téléchargement isolé : on affiche quand même le meme (carte
+      // d'erreur média côté overlay) au lieu de tout laisser disparaître.
+      try { local = await connection.downloadMedia(meme); if (local) temps.push(local); }
+      catch (e) { console.error('Média du meme non téléchargé:', e.message); }
     }
     // Son à l'apparition + overlay : téléchargés localement eux aussi — la CSP
     // stricte de l'overlay bloque toute URL distante (c'était la cause des

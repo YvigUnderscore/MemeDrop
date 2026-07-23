@@ -350,7 +350,16 @@
     let endTimer = null;
     const finish = () => { clearTimeout(endTimer); animateOut(stage, anim, animOutMs, () => done(meme, stage)); };
 
-    if (kind === 'text' || !meme.localPath) {
+    const isMediaKind = kind === 'image' || kind === 'gif' || kind === 'video' || kind === 'audio';
+    if (isMediaKind && !meme.localPath) {
+      // Média attendu mais fichier local manquant (téléchargement échoué) :
+      // carte d'erreur explicite plutôt qu'une carte de texte vide et muette.
+      const box = document.createElement('div'); box.className = 'media-box';
+      box.appendChild(mediaErrorCard());
+      if (meme.text && !opt.bakedText) box.appendChild(makeText(meme.text, opt, false, w));
+      stage.appendChild(box);
+      endTimer = setTimeout(finish, durationS * 1000);
+    } else if (kind === 'text' || !meme.localPath) {
       const wantBg = ov.textBackground !== false;
       if (wantBg) {
         const card = document.createElement('div');

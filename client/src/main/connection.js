@@ -51,8 +51,18 @@ function throttledDownload(urlStr, maxBytesPerSec, ext, onProgress) {
     const mod = url.protocol === 'https:' ? https : http;
     const dest = path.join(TMP_DIR, `${crypto.randomBytes(10).toString('hex')}.${ext}`);
     const out = fs.createWriteStream(dest);
+    let settled = false;
+    // Échec unique + nettoyage du fichier partiel : évite qu'un média corrompu
+    // reste sur le disque et soit « résolu » comme un succès.
+    const fail = (err) => {
+      if (settled) return; settled = true;
+      try { out.destroy(); } catch { /* ignore */ }
+      fs.rmSync(dest, { force: true });
+      reject(err);
+    };
+    out.on('error', fail);
     const req = mod.get(url, (res) => {
-      if (res.statusCode !== 200) { out.close(); fs.rmSync(dest, { force: true }); reject(new Error(`HTTP ${res.statusCode}`)); return; }
+      if (res.statusCode !== 200) { res.resume(); fail(new Error(`HTTP ${res.statusCode}`)); return; }
       const total = Number(res.headers['content-length'] || 0);
       let received = 0;
       let windowStart = Date.now();
@@ -73,10 +83,17 @@ function throttledDownload(urlStr, maxBytesPerSec, ext, onProgress) {
           if (elapsed >= 1000) { windowStart = Date.now(); windowBytes = 0; }
         }
       });
-      res.on('end', () => out.end(() => resolve(dest)));
-      res.on('error', (e) => { out.close(); reject(e); });
+      res.on('error', fail);
+      res.on('end', () => {
+        // Connexion coupée en cours → fichier tronqué. On échoue explicitement
+        // plutôt que de livrer un média illisible (« nom mais pas de contenu »).
+        if (total > 0 && received < total) { fail(new Error(`Téléchargement incomplet (${received}/${total})`)); return; }
+        out.end(() => { if (!settled) { settled = true; resolve(dest); } });
+      });
     });
-    req.on('error', reject);
+    // Un téléchargement qui « pend » ne doit pas bloquer le meme indéfiniment.
+    req.setTimeout(30000, () => req.destroy(new Error('Délai de téléchargement dépassé')));
+    req.on('error', fail);
   });
 }
 
@@ -148,27 +165,52 @@ class Connection extends EventEmitter {
     const slug = a.channel?.slug;
     if (!slug || !a.wsUrl || !a.deviceToken) return;
     this._closeAccount(slug);
-    const entry = { ws: null, pingTimer: null, reconnectTimer: null, open: false };
+    const entry = { ws: null, pingTimer: null, reconnectTimer: null, connectTimer: null, open: false, lastActivity: Date.now() };
     this.sockets.set(slug, entry);
     try { entry.ws = new WebSocket(`${a.wsUrl}?token=${encodeURIComponent(a.deviceToken)}`); }
     catch { entry.reconnectTimer = setTimeout(() => this._connectAccount(a), 4000); return; }
 
-    entry.ws.on('open', () => { entry.open = true; entry.pingTimer = setInterval(() => { try { entry.ws.send(JSON.stringify({ type: 'ping' })); } catch {} }, 25000); this._refreshStatus(); });
+    // Garde-fou de connexion : si l'ouverture n'aboutit pas (réseau qui « pend »),
+    // on coupe pour forcer une reconnexion au lieu de rester bloqué en « connecting ».
+    entry.connectTimer = setTimeout(() => { if (!entry.open) { try { entry.ws.terminate(); } catch {} } }, 15000);
+
+    const bump = () => { entry.lastActivity = Date.now(); };
+
+    entry.ws.on('open', () => {
+      entry.open = true;
+      clearTimeout(entry.connectTimer);
+      bump();
+      // Battement de cœur applicatif : ping régulier + détection de socket
+      // « mort silencieux » (demi-ouvert : aucun close TCP, ex. wifi qui change
+      // ou reprise de veille). Sans aucune activité depuis 70 s malgré les pings,
+      // on coupe pour reconnecter — corrige « l'app ne reçoit plus, faut reboot ».
+      entry.pingTimer = setInterval(() => {
+        if (Date.now() - entry.lastActivity > 70000) { try { entry.ws.terminate(); } catch {} return; }
+        try { entry.ws.send(JSON.stringify({ type: 'ping' })); } catch {}
+      }, 25000);
+      this._refreshStatus();
+    });
+    // Toute activité serveur rafraîchit la vivacité : messages applicatifs ET
+    // pings/pongs protocolaires (le serveur envoie un ping WS toutes les 30 s).
+    entry.ws.on('ping', bump);
+    entry.ws.on('pong', bump);
     entry.ws.on('message', (raw) => {
+      bump();
       let m; try { m = JSON.parse(raw.toString()); } catch { return; }
       if (m.type === 'meme') this.emit('meme', { ...m.meme, _slug: slug });
       else if (m.type === 'reaction') this.emit('reaction', m);     // mon meme a reçu une réaction
       else if (m.type === 'seen') this.emit('seen', { ...m, _slug: slug });        // « Vu par » (#1)
       else if (m.type === 'milestone') this.emit('milestone', { ...m, _slug: slug }); // seuil de réactions (#7)
+      // 'pong' applicatif : rien de plus à faire, la vivacité est déjà rafraîchie.
     });
-    entry.ws.on('close', () => { entry.open = false; clearInterval(entry.pingTimer); if (this.sockets.get(slug) === entry) { entry.reconnectTimer = setTimeout(() => this._connectAccount(a), 4000); } this._refreshStatus(); });
+    entry.ws.on('close', () => { entry.open = false; clearTimeout(entry.connectTimer); clearInterval(entry.pingTimer); if (this.sockets.get(slug) === entry) { entry.reconnectTimer = setTimeout(() => this._connectAccount(a), 4000); } this._refreshStatus(); });
     entry.ws.on('error', () => {});
   }
 
   _closeAccount(slug) {
     const e = this.sockets.get(slug);
     if (!e) return;
-    clearInterval(e.pingTimer); clearTimeout(e.reconnectTimer);
+    clearInterval(e.pingTimer); clearTimeout(e.reconnectTimer); clearTimeout(e.connectTimer);
     if (e.ws) { try { e.ws.removeAllListeners(); e.ws.close(); } catch {} }
     this.sockets.delete(slug);
   }
