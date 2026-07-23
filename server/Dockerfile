@@ -30,15 +30,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg tini \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY server/package*.json ./
-COPY --from=server-deps /build/server/node_modules ./node_modules
-COPY server/src ./src
-COPY --from=panel-build /build/panel/dist ./public
+# --chown pose l'ownership au moment de la copie : évite un `chown -R` final
+# très lent (des milliers de fichiers dans node_modules), surtout sur ZFS.
+COPY --chown=node:node server/package*.json ./
+COPY --chown=node:node --from=server-deps /build/server/node_modules ./node_modules
+COPY --chown=node:node server/src ./src
+COPY --chown=node:node --from=panel-build /build/panel/dist ./public
 # Éditeur web autonome (page statique hors SPA) servie sous /compose.
-COPY web-editor ./public/compose
+COPY --chown=node:node web-editor ./public/compose
 
-# Volume de données persistantes (base SQLite + médias).
-RUN mkdir -p /data && chown -R node:node /data /app
+# Volume de données persistantes (base SQLite + médias). /data est vide ici,
+# le chown est donc instantané (pas de -R sur /app).
+RUN mkdir -p /data && chown node:node /data
 VOLUME ["/data"]
 USER node
 
