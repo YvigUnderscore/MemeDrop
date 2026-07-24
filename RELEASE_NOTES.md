@@ -18,6 +18,7 @@ Reliability release: fixes memes arriving empty, the client silently going deaf,
 - **Sender avatar always visible** — the sender's Discord profile picture now shows left of their name; members without a known avatar get the Discord default avatar, and anything else falls back to a colored initial badge.
 
 ### Server & panel
+- **Editor memes arrived EMPTY (text/images invisible)** — the editor's final render step accidentally wiped the composed canvas right before export (`renderStrokes` always cleared its target). Text-only, image-only and color-background memes were sent as fully transparent images; combined with a GIF/video, the text/image overlay was blank (only drawings survived, as they were painted after the wipe). The clear now only applies to the live drawing canvas.
 - **Broken images fixed** — the server CSP now allows Discord avatars (`cdn.discordapp.com`) and GIPHY thumbnails (`*.giphy.com`).
 - **No more post-launch cooldown** — the sender "warmup" now defaults to 0 s, so memes (text/emoji included) go out immediately after opening the app. The setting is per-channel: panel → channel → Settings → "Send warmup after app launch".
 - **Queued memes can no longer get stuck forever** — a meme held by the warmup queue is now guaranteed to go out once the warmup duration has elapsed, even if its sender closed the app or lost the connection meanwhile (this silently swallowed text/image memes sent right after launch).

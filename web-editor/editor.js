@@ -763,7 +763,10 @@ drawCanvas.addEventListener('pointerup', () => { if (stroke) { stroke = null; co
 
 function resizeDrawCanvas() { const { W, H } = stagePx(); drawCanvas.width = W; drawCanvas.height = H; renderStrokes(); }
 function renderStrokes(ctx = dctx, W = drawCanvas.width, H = drawCanvas.height) {
-  ctx.clearRect(0, 0, W, H);
+  // N'effacer QUE le canvas de dessin live (redessin pendant le trait).
+  // Depuis bake(), ctx est le canvas de COMPOSITION : un clearRect y détruirait
+  // tout ce qui vient d'être composé (texte/images/fond) → memes envoyés vides.
+  if (ctx === dctx) ctx.clearRect(0, 0, W, H);
   for (const s of strokes) {
     ctx.globalCompositeOperation = s.erase ? 'destination-out' : 'source-over';
     ctx.strokeStyle = s.color; ctx.lineWidth = Math.max(1, s.sizeFrac * W); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
