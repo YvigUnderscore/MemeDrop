@@ -63,6 +63,7 @@ export const ChannelAPI = {
   removeGroup: (id, gid) => api.del(`/channels/${id}/groups/${gid}`),
   devices: (id) => api.get(`/channels/${id}/devices`),
   pairCode: (id, b) => api.post(`/channels/${id}/devices/pair-code`, b),
+  updateDevice: (id, did, b) => api.patch(`/channels/${id}/devices/${did}`, b),
   revokeDevice: (id, did) => api.del(`/channels/${id}/devices/${did}`),
   memes: (id, q = '') => api.get(`/channels/${id}/memes${q}`),
   memeReceipts: (id, mid) => api.get(`/channels/${id}/memes/${mid}/receipts`),

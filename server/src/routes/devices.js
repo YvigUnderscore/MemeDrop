@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { z } from 'zod';
 import { db, now, audit } from '../db.js';
 import { panelAuth, requireStaff } from '../auth.js';
+import { invalidateBlocks } from '../wsHub.js';
 import { asyncHandler, loadChannel } from './helpers.js';
 
 // Monté sur /api/channels/:channelId/devices
@@ -44,6 +45,18 @@ router.patch('/:did', asyncHandler((req, res) => {
   if (!dev) return res.status(404).json({ error: 'Not found' });
   db.prepare('UPDATE devices SET name = COALESCE(?, name), discord_id = COALESCE(?, discord_id) WHERE id = ?')
     .run(b.name ?? null, b.discordId ?? null, dev.id);
+  // Lier l'appareil change son propriétaire logique (device:<id> → discord_id) :
+  // on migre ses possessions pour que sa bibliothèque, ses planifications et ses
+  // blocages suivent la nouvelle identité au lieu de devenir orphelins.
+  if (b.discordId !== undefined && b.discordId !== '' && !dev.owner && !dev.discord_id) {
+    const from = `device:${dev.id}`;
+    db.prepare('UPDATE assets SET owner = ? WHERE channel_id = ? AND owner = ?').run(b.discordId, req.channel.id, from);
+    db.prepare('UPDATE schedules SET owner = ? WHERE channel_id = ? AND owner = ?').run(b.discordId, req.channel.id, from);
+    // OR IGNORE : la PK (channel, owner, blocked) peut déjà exister sous la nouvelle identité.
+    db.prepare('UPDATE OR IGNORE member_blocks SET owner = ? WHERE channel_id = ? AND owner = ?').run(b.discordId, req.channel.id, from);
+    invalidateBlocks(req.channel.id);
+  }
+  audit(req.user.username, 'device.link', { channel: req.channel.slug, device: dev.id, discordId: b.discordId ?? null });
   res.json({ ok: true });
 }));
 

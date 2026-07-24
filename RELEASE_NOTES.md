@@ -23,6 +23,7 @@ Reliability release: fixes memes arriving empty, the client silently going deaf,
 - **No more post-launch cooldown** — the sender "warmup" now defaults to 0 s, so memes (text/emoji included) go out immediately after opening the app. The setting is per-channel: panel → channel → Settings → "Send warmup after app launch".
 - **Queued memes can no longer get stuck forever** — a meme held by the warmup queue is now guaranteed to go out once the warmup duration has elapsed, even if its sender closed the app or lost the connection meanwhile (this silently swallowed text/image memes sent right after launch).
 - **Avatar refresh** — the bot now refreshes a member's username/avatar on every slash command, so avatars show up even for members who only send from the editor.
+- **Link a device to a Discord member** — panel → Devices: link any client device to a whitelisted member (or pre-link when generating a pairing code). Memes sent from that device then carry the member's Discord avatar and name style; their sound library, schedules and blocks follow the new identity. Panel-editor sends now use the panel account's linked Discord avatar too.
 
 ## ✨ New
 - **In-app updates** — the client checks GitHub Releases on launch (and every 6 h): a system notification and a tray "Update available" item link straight to the download. Manual check via the tray menu.

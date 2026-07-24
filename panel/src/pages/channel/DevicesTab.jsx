@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MonitorSmartphone, KeyRound, Trash2, Search } from 'lucide-react';
+import { MonitorSmartphone, KeyRound, Trash2, Search, Link2 } from 'lucide-react';
 import { ChannelAPI } from '../../lib/api.js';
 import { Card, Modal, Badge, EmptyState, Spinner, CopyButton, Tooltip } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
@@ -25,16 +25,31 @@ export default function DevicesTab({ channel }) {
   const [code, setCode] = useState(null);
   const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState('');
+  // Membres whitelistés — pour lier un appareil à un compte Discord (avatar sur l'overlay).
+  const [members, setMembers] = useState([]);
+  const [pairMember, setPairMember] = useState('');
+  const [linking, setLinking] = useState(null); // appareil en cours de liaison
 
   const load = () => ChannelAPI.devices(channel.id).then(setDevices).catch((e) => toast.error(e.message));
   useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, [channel.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { ChannelAPI.whitelist(channel.id).then(setMembers).catch(() => {}); }, [channel.id]);
+
+  const memberName = (id) => members.find((m) => m.discord_id === id)?.discord_username || id;
 
   const generate = async () => {
     setBusy(true);
     try {
-      const r = await ChannelAPI.pairCode(channel.id, { label, ttlMinutes: 30 });
+      const r = await ChannelAPI.pairCode(channel.id, { label, ttlMinutes: 30, ...(pairMember ? { discordId: pairMember } : {}) });
       setCode(r);
     } catch (e) { toast.error(e.message); } finally { setBusy(false); }
+  };
+
+  const linkDevice = async (discordId) => {
+    try {
+      await ChannelAPI.updateDevice(channel.id, linking.id, { discordId });
+      toast.success(discordId ? `Linked to ${memberName(discordId)} — their Discord avatar now shows on memes.` : 'Device unlinked.');
+      setLinking(null); load();
+    } catch (e) { toast.error(e.message); }
   };
   const revoke = async (d) => { if (!(await confirm({ message: `Revoke the device "${d.name}"?`, danger: true, confirmLabel: 'Revoke' }))) return; try { await ChannelAPI.revokeDevice(channel.id, d.id); load(); } catch (e) { toast.error(e.message); } };
   const close = () => { setOpen(false); setCode(null); setLabel(''); load(); };
@@ -80,9 +95,12 @@ export default function DevicesTab({ channel }) {
                 </Tooltip>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">{d.name} {d.discord_id ? <Badge tone="accent">Discord linked</Badge> : null}</div>
+                <div className="font-medium truncate">{d.name} {d.discord_id ? <Badge tone="accent">@{memberName(d.discord_id)}</Badge> : null}</div>
                 <div className="text-xs text-muted">{isOnline(d.last_seen) ? <span className="text-success">online</span> : `seen ${ago(d.last_seen)}`}</div>
               </div>
+              <Tooltip label={d.discord_id ? 'Change linked member' : 'Link to a Discord member (shows their avatar on memes)'}>
+                <button onClick={() => setLinking(d)} aria-label="Link to member" className={`btn-ghost !px-2.5 ${d.discord_id ? 'text-accent' : ''}`}><Link2 size={15} /></button>
+              </Tooltip>
               <button onClick={() => revoke(d)} aria-label="Revoke" className="btn-ghost !px-2.5 text-danger"><Trash2 size={15} /></button>
             </div>
           ))}
@@ -94,6 +112,13 @@ export default function DevicesTab({ channel }) {
           <div className="space-y-4">
             <label className="block"><span className="label">Device name (optional)</span>
               <input className="input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Max PC" autoFocus /></label>
+            <label className="block"><span className="label">Link to a Discord member (optional — shows their avatar on memes)</span>
+              <select className="input" value={pairMember} onChange={(e) => setPairMember(e.target.value)}>
+                <option value="">Nobody — anonymous device</option>
+                {members.filter((m) => !m.banned).map((m) => (
+                  <option key={m.discord_id} value={m.discord_id}>{m.discord_username || m.discord_id}</option>
+                ))}
+              </select></label>
             <div className="flex justify-end gap-2">
               <button className="btn-ghost" onClick={close}>Cancel</button>
               <button className="btn-primary" disabled={busy} onClick={generate}>{busy ? <Spinner /> : <KeyRound size={16} />} Generate the code</button>
@@ -110,6 +135,27 @@ export default function DevicesTab({ channel }) {
             <button className="btn-primary w-full" onClick={close}>Done</button>
           </div>
         )}
+      </Modal>
+
+      <Modal open={!!linking} onClose={() => setLinking(null)} title={`Link "${linking?.name || ''}" to a member`}>
+        <div className="space-y-4">
+          <p className="text-sm text-muted">Memes sent from this device will carry the member's identity: Discord avatar and name style on the recipients' overlay.</p>
+          <div className="max-h-64 overflow-y-auto divide-y divide-border">
+            {members.filter((m) => !m.banned).map((m) => (
+              <button key={m.discord_id} onClick={() => linkDevice(m.discord_id)}
+                className={`w-full text-left px-3 py-2.5 hover:bg-surface-2 transition flex items-center gap-2 ${linking?.discord_id === m.discord_id ? 'text-accent font-medium' : ''}`}>
+                <Link2 size={14} className="shrink-0" /> {m.discord_username || m.discord_id}
+              </button>
+            ))}
+            {members.filter((m) => !m.banned).length === 0 && <p className="text-sm text-muted py-2">No whitelisted members.</p>}
+          </div>
+          <div className="flex justify-between gap-2">
+            {linking?.discord_id
+              ? <button className="btn-ghost text-danger" onClick={() => linkDevice('')}>Unlink</button>
+              : <span />}
+            <button className="btn-ghost" onClick={() => setLinking(null)}>Cancel</button>
+          </div>
+        </div>
       </Modal>
     </Card>
   );

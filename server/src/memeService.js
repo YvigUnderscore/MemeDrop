@@ -47,21 +47,37 @@ export function verifyMediaToken(relPath, token) {
 
 /** URL CDN de l'avatar Discord de l'expéditeur (null si pas un compte Discord). */
 export function senderAvatarUrl(channelId, senderId) {
-  if (!/^\d{5,}$/.test(String(senderId || ''))) return null; // pas un id Discord
+  const s = String(senderId || '');
+  // Envoi depuis l'éditeur du panel : avatar Discord du COMPTE PANEL, si lié.
+  if (s.startsWith('panel:')) {
+    const u = db.prepare('SELECT discord_id, discord_avatar FROM users WHERE username = ?').get(s.slice(6));
+    if (u?.discord_id && u?.discord_avatar) return `https://cdn.discordapp.com/avatars/${u.discord_id}/${u.discord_avatar}.png?size=64`;
+    return null; // pas de compte Discord lié → pastille initiale côté client
+  }
+  if (!/^\d{5,}$/.test(s)) return null; // pas un id Discord (appareil non lié)
   const w = db.prepare('SELECT discord_avatar FROM whitelist WHERE channel_id = ? AND discord_id = ?')
-    .get(channelId, String(senderId));
-  if (w?.discord_avatar) return `https://cdn.discordapp.com/avatars/${senderId}/${w.discord_avatar}.png?size=64`;
+    .get(channelId, s);
+  if (w?.discord_avatar) return `https://cdn.discordapp.com/avatars/${s}/${w.discord_avatar}.png?size=64`;
+  // La whitelist ne connaît pas le hash, mais le compte panel du membre peut-être
+  // (connexion Discord au panel) : même humain, même avatar.
+  const u = db.prepare('SELECT discord_avatar FROM users WHERE discord_id = ?').get(s);
+  if (u?.discord_avatar) return `https://cdn.discordapp.com/avatars/${s}/${u.discord_avatar}.png?size=64`;
   // Hash d'avatar inconnu (membre qui n'a jamais utilisé une commande du bot) :
   // avatar Discord PAR DÉFAUT, déterministe par id — l'overlay a toujours une image.
-  try { return `https://cdn.discordapp.com/embed/avatars/${Number((BigInt(senderId) >> 22n) % 6n)}.png`; } catch { return null; }
+  try { return `https://cdn.discordapp.com/embed/avatars/${Number((BigInt(s) >> 22n) % 6n)}.png`; } catch { return null; }
 }
 
 const HEX_RX = /^#[0-9a-fA-F]{6}$/;
 /** Style du pseudo choisi par l'expéditeur (profil) : couleur + glow. */
 export function senderStyle(channelId, senderId) {
-  if (!/^\d{5,}$/.test(String(senderId || ''))) return {};
-  const w = db.prepare('SELECT name_color, name_glow FROM whitelist WHERE channel_id = ? AND discord_id = ?')
-    .get(channelId, String(senderId));
+  const s = String(senderId || '');
+  let w = null;
+  if (s.startsWith('panel:')) {
+    w = db.prepare('SELECT name_color, name_glow FROM users WHERE username = ?').get(s.slice(6));
+  } else if (/^\d{5,}$/.test(s)) {
+    w = db.prepare('SELECT name_color, name_glow FROM whitelist WHERE channel_id = ? AND discord_id = ?')
+      .get(channelId, s);
+  } else return {};
   return {
     senderColor: HEX_RX.test(w?.name_color || '') ? w.name_color : null,
     senderGlow: HEX_RX.test(w?.name_glow || '') ? w.name_glow : null,
