@@ -303,9 +303,9 @@ export const DEFAULT_CHANNEL_SETTINGS = {
   rateLimitPerMinute: 6,               // memes/minute/expéditeur
   maxReceivesPerMinute: 20,            // memes/minute/destinataire (anti-spam ciblé, 0 = illimité)
   // Warmup expéditeur (#11) : durée de connexion minimale avant que ses envois
-  // partent (anti « lance l'app, envoie, ferme »). 0 = désactivé. Les memes
-  // envoyés avant sont mis en file et diffusés à la fin du warmup.
-  senderWarmupS: 120,
+  // partent (anti « lance l'app, envoie, ferme »). 0 = désactivé (défaut : les
+  // memes doivent partir immédiatement, sans « cooldown » après l'ouverture).
+  senderWarmupS: 0,
   // Durée max (ms) des animations d'entrée/sortie choisies par l'expéditeur.
   maxAnimMs: 1500,
   // Feature-flags par défaut du channel (surchargés par groupe/membre)

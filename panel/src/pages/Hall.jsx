@@ -177,11 +177,23 @@ export default function Hall() {
   const load = useMemo(() => async () => {
     if (!channelId) return;
     setLoading(true);
-    try { setData(await HallAPI.top(channelId, week)); }
+    try { setData(week === 'all' ? await HallAPI.all(channelId, { offset: 0 }) : await HallAPI.top(channelId, week)); }
     catch (e) { toast.error(e.message); }
     finally { setLoading(false); }
   }, [channelId, week]); // eslint-disable-line react-hooks/exhaustive-deps
   reloadRef.current = load;
+
+  // Mode « tous les memes » : pagination « charger plus » (ajoute à la suite).
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadMore = async () => {
+    if (!channelId || !data?.hasMore) return;
+    setLoadingMore(true);
+    try {
+      const next = await HallAPI.all(channelId, { offset: data.memes.length });
+      setData((d) => ({ ...next, memes: [...(d?.memes || []), ...next.memes] }));
+    } catch (e) { toast.error(e.message); }
+    finally { setLoadingMore(false); }
+  };
 
   useEffect(() => { setData(null); load(); }, [load]);
 
@@ -209,7 +221,7 @@ export default function Hall() {
         <div className="w-11 h-11 rounded-xl bg-accent-gradient grid place-items-center shadow-glow"><Trophy size={22} className="text-white" /></div>
         <div>
           <h1 className="text-2xl font-extrabold">Hall of Memes</h1>
-          <p className="text-sm text-muted">Live weekly top 10 of PUBLIC memes — every past week is archived forever.</p>
+          <p className="text-sm text-muted">Browse all PUBLIC memes per channel, or the live weekly top 10 — every past week's top 10 is archived forever.</p>
         </div>
       </div>
 
@@ -224,14 +236,17 @@ export default function Hall() {
           <span className="label">Week</span>
           <select className="input !py-1.5 min-w-[220px]" value={week} onChange={(e) => setWeek(e.target.value)}>
             <option value="current">🔴 This week (live)</option>
+            <option value="all">📚 All public memes</option>
             {(weeks?.weeks || []).map((w) => <option key={w} value={w}>🗄️ {fmtWeek(w)}</option>)}
           </select>
         </label>
         {data && (
           <div className="pb-1.5">
-            {data.live
-              ? <Badge tone="success"><Radio size={12} /> live — archived on Monday</Badge>
-              : <Badge><Archive size={12} /> archived week ({fmtWeek(data.week)})</Badge>}
+            {data.all
+              ? <Badge><ImageIcon size={12} /> all public memes</Badge>
+              : data.live
+                ? <Badge tone="success"><Radio size={12} /> live — archived on Monday</Badge>
+                : <Badge><Archive size={12} /> archived week ({fmtWeek(data.week)})</Badge>}
           </div>
         )}
       </Card>
@@ -243,7 +258,8 @@ export default function Hall() {
           ))}
         </div>
       ) : memes.length === 0 ? (
-        <EmptyState icon={Trophy} title={week === 'current' ? 'No memes with reactions this week' : 'No archive for this week'}
+        <EmptyState icon={Trophy}
+          title={week === 'all' ? 'No public memes in this channel yet' : week === 'current' ? 'No memes with reactions this week' : 'No archive for this week'}
           hint={week === 'current' ? 'As soon as memes get reactions, they will show up here.' : undefined} />
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -254,10 +270,12 @@ export default function Hall() {
                 onClick={() => setViewer(m.memeId)}>
                 <div className="relative aspect-video bg-black overflow-hidden">
                   <MemeThumb m={m} />
-                  <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                    {rank ? <span className={`w-7 h-7 rounded-full bg-black/70 grid place-items-center ${rank.cls}`}><rank.icon size={15} /></span>
-                      : <span className="w-7 h-7 rounded-full bg-black/70 grid place-items-center text-xs font-bold text-white">{m.rank}</span>}
-                  </div>
+                  {m.rank ? (
+                    <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                      {rank ? <span className={`w-7 h-7 rounded-full bg-black/70 grid place-items-center ${rank.cls}`}><rank.icon size={15} /></span>
+                        : <span className="w-7 h-7 rounded-full bg-black/70 grid place-items-center text-xs font-bold text-white">{m.rank}</span>}
+                    </div>
+                  ) : null}
                   <div className="absolute top-2 right-2 flex gap-1.5">
                     <Badge tone="accent"><Flame size={12} /> {m.reactions}</Badge>
                     {m.comments > 0 && <Badge><MessageCircle size={12} /> {m.comments}</Badge>}
@@ -279,6 +297,14 @@ export default function Hall() {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {week === 'all' && data?.hasMore && memes.length > 0 && (
+        <div className="grid place-items-center">
+          <button className="btn-ghost" disabled={loadingMore} onClick={loadMore}>
+            {loadingMore ? <Spinner /> : 'Load more'}
+          </button>
         </div>
       )}
 

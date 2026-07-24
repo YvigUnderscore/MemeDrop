@@ -97,8 +97,23 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
   backdrop-filter: blur(4px);
 }
 
+/* Cadre collé en haut de l'écran : étiquette à l'intérieur pour rester visible. */
+.sender-tag.inside {
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+}
+
 .sender-tag .sender-name {
   letter-spacing: 0.2px;
+}
+
+/* Repli sans avatar Discord : pastille ronde avec l'initiale du pseudo. */
+.sender-avatar-letter {
+  display: grid;
+  place-items: center;
+  font: 800 13px/1 system-ui, sans-serif;
+  color: #fff;
 }
 
 .sender-tag .sender-avatar {

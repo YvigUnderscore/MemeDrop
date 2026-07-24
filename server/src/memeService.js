@@ -45,13 +45,15 @@ export function verifyMediaToken(relPath, token) {
   } catch { return false; }
 }
 
-/** URL CDN de l'avatar Discord de l'expéditeur (null si inconnu/non lié). */
+/** URL CDN de l'avatar Discord de l'expéditeur (null si pas un compte Discord). */
 export function senderAvatarUrl(channelId, senderId) {
   if (!/^\d{5,}$/.test(String(senderId || ''))) return null; // pas un id Discord
   const w = db.prepare('SELECT discord_avatar FROM whitelist WHERE channel_id = ? AND discord_id = ?')
     .get(channelId, String(senderId));
-  if (!w?.discord_avatar) return null;
-  return `https://cdn.discordapp.com/avatars/${senderId}/${w.discord_avatar}.png?size=64`;
+  if (w?.discord_avatar) return `https://cdn.discordapp.com/avatars/${senderId}/${w.discord_avatar}.png?size=64`;
+  // Hash d'avatar inconnu (membre qui n'a jamais utilisé une commande du bot) :
+  // avatar Discord PAR DÉFAUT, déterministe par id — l'overlay a toujours une image.
+  try { return `https://cdn.discordapp.com/embed/avatars/${Number((BigInt(senderId) >> 22n) % 6n)}.png`; } catch { return null; }
 }
 
 const HEX_RX = /^#[0-9a-fA-F]{6}$/;
@@ -209,7 +211,7 @@ export async function createAndDispatchMeme(p) {
   // n'est diffusé que si l'expéditeur est en ligne depuis senderWarmupS ;
   // sinon il est mis en file (statut 'queued') et part à la fin du warmup.
   // Modérateurs/admins et comptes panel (déjà staff) bypassent.
-  const warmupS = Math.max(0, Number(settings.senderWarmupS ?? 120) || 0);
+  const warmupS = Math.max(0, Number(settings.senderWarmupS ?? 0) || 0);
   let needsWarmup = false;
   if (!needsReview && warmupS > 0 && !p.isModerator && !String(p.sender).startsWith('panel:')) {
     const since = onlineSince(channel.id, String(p.sender));
@@ -358,9 +360,14 @@ export async function dispatchQueuedMemes() {
     const channel = db.prepare('SELECT * FROM channels WHERE id = ? AND active = 1').get(m.channel_id);
     if (!channel) { db.prepare("UPDATE memes SET status = 'removed' WHERE id = ?").run(m.id); continue; }
     const settings = getChannelSettings(channel);
-    const warmupS = Math.max(0, Number(settings.senderWarmupS ?? 120) || 0);
+    const warmupS = Math.max(0, Number(settings.senderWarmupS ?? 0) || 0);
+    // Prêt si l'expéditeur est en ligne depuis warmupS — OU si le meme attend
+    // depuis warmupS (garantie de livraison : un expéditeur qui ferme l'app ou
+    // dont le WS a coupé ne doit pas laisser son meme bloqué en file à jamais).
     const since = onlineSince(channel.id, String(m.sender));
-    if (warmupS > 0 && (!since || (now() - since) < warmupS * 1000)) continue; // pas encore prêt
+    const senderReady = !!since && (now() - since) >= warmupS * 1000;
+    const waitedFull = (now() - m.created_at) >= warmupS * 1000;
+    if (warmupS > 0 && !senderReady && !waitedFull) continue; // pas encore prêt
     try {
       const { media, options } = await hydrateStoredMedia(m);
       const groupNames = options.__groups || [];

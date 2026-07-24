@@ -324,13 +324,29 @@
     if (meme.sender) {
       const tag = document.createElement('div');
       tag.className = 'sender-tag';
-      // Avatar Discord de l'expéditeur (si son compte est lié).
+      // L'étiquette est ancrée au-dessus du cadre (top: -34px). Si le cadre est
+      // tout en haut de l'écran, elle sortirait de l'écran (clippée) → on la
+      // bascule À L'INTÉRIEUR du cadre pour que le nom reste visible.
+      if (y < 40) tag.classList.add('inside');
+      // Avatar de l'expéditeur, à gauche du pseudo. Repli : pastille avec
+      // l'initiale (couleur stable dérivée du pseudo) si pas d'avatar Discord
+      // connu ou si son chargement échoue — il y a TOUJOURS une image.
+      const letterAvatar = () => {
+        const d = document.createElement('div');
+        d.className = 'sender-avatar sender-avatar-letter';
+        d.textContent = (String(meme.sender).trim()[0] || '?').toUpperCase();
+        const hue = [...String(meme.sender)].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+        d.style.background = `hsl(${hue} 60% 40%)`;
+        return d;
+      };
       if (meme.senderAvatar) {
         const av = document.createElement('img');
         av.className = 'sender-avatar';
         av.src = meme.senderAvatar;
-        av.addEventListener('error', () => av.remove());
+        av.addEventListener('error', () => av.replaceWith(letterAvatar()));
         tag.appendChild(av);
+      } else {
+        tag.appendChild(letterAvatar());
       }
       const name = document.createElement('span');
       name.className = 'sender-name';

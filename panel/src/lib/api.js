@@ -86,6 +86,7 @@ export const HallAPI = {
   channels: () => api.get('/hall/channels'),
   weeks: (channelId) => api.get(`/hall/${channelId}/weeks`),
   top: (channelId, week = 'current') => api.get(`/hall/${channelId}/top?week=${encodeURIComponent(week)}`),
+  all: (channelId, { offset = 0, limit = 30 } = {}) => api.get(`/hall/${channelId}/all?offset=${offset}&limit=${limit}`),
   comments: (memeId) => api.get(`/hall/memes/${encodeURIComponent(memeId)}/comments`),
   addComment: (memeId, text) => api.post(`/hall/memes/${encodeURIComponent(memeId)}/comments`, { text }),
   deleteComment: (id) => api.del(`/hall/comments/${id}`),

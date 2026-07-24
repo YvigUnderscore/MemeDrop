@@ -8,12 +8,18 @@ Reliability release: fixes memes arriving empty, the client silently going deaf,
 - **"Sender name but no content"** — media downloads now have a timeout, handle write errors, and reject truncated files instead of delivering an unreadable media. A media meme whose file failed to download now shows a clear "⚠️ Media failed to load" card instead of a silent empty box.
 - **"The app stops receiving, I have to reboot it"** — the WebSocket now detects silently-dead ("half-open") connections (Wi-Fi change, sleep/resume) and reconnects automatically, plus a 15 s guard against stuck "connecting" states.
 - A failed media download no longer discards the whole meme — it still displays.
+- **Sender name sometimes missing** — the name tag no longer gets clipped off-screen when a meme is pinned to the very top; it moves inside the frame.
+- **Sender avatar always visible** — the sender's Discord profile picture now shows left of their name; members without a known avatar get the Discord default avatar, and anything else falls back to a colored initial badge.
 
-### Panel & editor
+### Server & panel
 - **Broken images fixed** — the server CSP now allows Discord avatars (`cdn.discordapp.com`) and GIPHY thumbnails (`*.giphy.com`).
+- **No more post-launch cooldown** — the sender "warmup" now defaults to 0 s, so memes (text/emoji included) go out immediately after opening the app. The setting is per-channel: panel → channel → Settings → "Send warmup after app launch".
+- **Queued memes can no longer get stuck forever** — a meme held by the warmup queue is now guaranteed to go out once the warmup duration has elapsed, even if its sender closed the app or lost the connection meanwhile (this silently swallowed text/image memes sent right after launch).
+- **Avatar refresh** — the bot now refreshes a member's username/avatar on every slash command, so avatars show up even for members who only send from the editor.
 
 ## ✨ New
 - **In-app updates** — the client checks GitHub Releases on launch (and every 6 h): a system notification and a tray "Update available" item link straight to the download. Manual check via the tray menu.
+- **Hall of Memes — "All public memes"** — a new per-channel view lists every public meme (not just the weekly top 10), newest first, with "Load more" pagination. The weekly top 10 by reactions is still archived forever.
 
 ---
 

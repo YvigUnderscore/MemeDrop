@@ -110,7 +110,7 @@ export default function SettingsTab({ channel, onSaved }) {
             <Num label="Cooldown" value={s.defaultCooldownS} onChange={(v) => set('defaultCooldownS', v)} min={0} max={600} suffix="s" />
             <Num label="Max sends / sender" value={s.rateLimitPerMinute} onChange={(v) => set('rateLimitPerMinute', v)} min={0} max={120} suffix="/min" />
             <Num label="Max receives / recipient" value={s.maxReceivesPerMinute ?? 20} onChange={(v) => set('maxReceivesPerMinute', v)} min={0} max={240} suffix="/min" />
-            <Num label="Warmup before sending" value={s.senderWarmupS ?? 120} onChange={(v) => set('senderWarmupS', v)} min={0} max={3600} suffix="s" />
+            <Num label="Send warmup after app launch (0 = off)" value={s.senderWarmupS ?? 0} onChange={(v) => set('senderWarmupS', v)} min={0} max={3600} suffix="s" />
           </div>
           <label className="block mt-4">
             <span className="label">Default volume ({Math.round(s.defaultVolume * 100)}%)</span>

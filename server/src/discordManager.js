@@ -134,9 +134,6 @@ async function handleMeme(interaction, channel) {
   };
 
   await interaction.deferReply({ ephemeral: true });
-  // Rafraîchit pseudo + avatar du membre (affichés sur l'overlay des destinataires).
-  db.prepare('UPDATE whitelist SET discord_username = ?, discord_avatar = ? WHERE channel_id = ? AND discord_id = ?')
-    .run(interaction.user.username, interaction.user.avatar || null, channel.id, interaction.user.id);
   let buffer = null;
   if (attachment) buffer = await downloadAttachment(attachment.url, maxBytes);
 
@@ -335,6 +332,11 @@ function attachHandlers(client, channelId) {
     try {
       if (interaction.isAutocomplete()) return handleAutocomplete(interaction, channel);
       if (!interaction.isChatInputCommand()) return;
+      // Rafraîchit pseudo + avatar du membre à CHAQUE commande (pas seulement
+      // /meme) : l'avatar affiché sur l'overlay des destinataires reste connu
+      // même si le membre n'envoie ensuite que depuis l'éditeur.
+      db.prepare('UPDATE whitelist SET discord_username = ?, discord_avatar = ? WHERE channel_id = ? AND discord_id = ?')
+        .run(interaction.user.username, interaction.user.avatar || null, channel.id, interaction.user.id);
       switch (interaction.commandName) {
         case 'meme': return await handleMeme(interaction, channel);
         case 'link': return await handleLink(interaction, channel);

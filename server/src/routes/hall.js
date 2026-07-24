@@ -56,6 +56,12 @@ function hallReactionCounts(memeId) {
   for (const r of rows) out[r.emoji] = r.c;
   return out;
 }
+// Détail des réactions overlay (celles reçues à l'affichage du meme).
+function overlayReactionDetail(memeId) {
+  const out = {};
+  for (const r of db.prepare('SELECT emoji, COUNT(*) c FROM meme_reactions WHERE meme_id = ? GROUP BY emoji').all(memeId)) out[r.emoji] = r.c;
+  return out;
+}
 function decorate(userId, item) {
   return {
     ...item,
@@ -89,11 +95,7 @@ router.get('/:channelId/top', requireChannelAccess, asyncHandler((req, res) => {
         memeId: m.id, rank: i + 1, type: m.type, text: m.text,
         sender: m.sender, senderName: m.sender_name,
         reactions: m.cnt,
-        reactionDetail: (() => {
-          const d = {};
-          for (const r of db.prepare('SELECT emoji, COUNT(*) c FROM meme_reactions WHERE meme_id = ? GROUP BY emoji').all(m.id)) d[r.emoji] = r.c;
-          return d;
-        })(),
+        reactionDetail: overlayReactionDetail(m.id),
         mediaUrl: m.media_path ? signMediaUrl(m.media_path) : null,
         mediaMime: m.media_mime,
         createdAt: m.created_at,
@@ -114,6 +116,34 @@ router.get('/:channelId/top', requireChannelAccess, asyncHandler((req, res) => {
       mediaUrl: m.media_path ? signMediaUrl(m.media_path) : null,
       mediaMime: m.media_mime,
       createdAt: m.meme_created_at,
+    })),
+  });
+}));
+
+// --- Tous les memes PUBLICS d'un channel (pas seulement le top), paginé ----
+// Comme le Hall, uniquement les memes globaux (targets = '[]'), jamais privés.
+// Ordre antéchronologique (récents d'abord). Le top 10 hebdo reste archivé à part.
+router.get('/:channelId/all', requireChannelAccess, asyncHandler((req, res) => {
+  const limit = Math.min(60, Math.max(1, Number(req.query.limit) || 30));
+  const offset = Math.max(0, Number(req.query.offset) || 0);
+  // limit+1 pour savoir s'il reste une page suivante sans second COUNT.
+  const rows = db.prepare(`
+    SELECT m.*, (SELECT COUNT(*) FROM meme_reactions r WHERE r.meme_id = m.id) AS cnt
+    FROM memes m
+    WHERE m.channel_id = ? AND m.status = 'sent' AND m.targets = '[]'
+    ORDER BY m.created_at DESC
+    LIMIT ? OFFSET ?`).all(req.channelId, limit + 1, offset);
+  const hasMore = rows.length > limit;
+  res.json({
+    all: true, offset, limit, hasMore,
+    memes: rows.slice(0, limit).map((m) => decorate(req.user.id, {
+      memeId: m.id, rank: null, type: m.type, text: m.text,
+      sender: m.sender, senderName: m.sender_name,
+      reactions: m.cnt,
+      reactionDetail: overlayReactionDetail(m.id),
+      mediaUrl: m.media_path ? signMediaUrl(m.media_path) : null,
+      mediaMime: m.media_mime,
+      createdAt: m.created_at,
     })),
   });
 }));
