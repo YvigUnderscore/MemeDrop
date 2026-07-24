@@ -1,7 +1,7 @@
 {
   "name": "memedrop-client",
   "productName": "MemeDrop",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "MemeDrop — client desktop : reçoit et affiche les memes des copains en overlay.",
   "author": "MemeDrop",
   "license": "MIT",

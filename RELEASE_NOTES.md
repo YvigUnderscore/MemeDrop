@@ -1,3 +1,9 @@
+# MemeDrop v1.2.1
+
+Follow-up to v1.2.0: the sender's profile picture now always shows left of their name on the overlay — Discord avatar when known, Discord default avatar otherwise, colored initial badge as a last resort.
+
+---
+
 # MemeDrop v1.2.0 — "Reliable Delivery"
 
 Reliability release: fixes memes arriving empty, the client silently going deaf, and broken images in the panel/editor. Adds in-app update notifications.
