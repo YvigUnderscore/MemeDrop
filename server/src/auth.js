@@ -27,11 +27,22 @@ export function ensureAdmin() {
 }
 
 // ---- Sessions panel (JWT via cookie httpOnly) --------------------------
+// Hash de comparaison factice, utilisé quand aucun mot de passe réel n'est
+// vérifiable (compte inexistant, ou compte Discord dont le hash est '!').
+// Il DOIT être un vrai hash bcrypt de 60 caractères au même coût que les
+// hashes réels : bcryptjs court-circuite sur `hash.length !== 60` et renvoie
+// false instantanément, ce qui trahirait l'existence du compte par le simple
+// temps de réponse (mesuré : 0,005 ms contre 189 ms).
+const DUMMY_HASH = '$2a$12$ELq/V0bFXWY1//0wqMEBQumymqU3UArjg0XZV4DG8/NSAR3Tijwxi';
+
 export function verifyPassword(username, password) {
   const u = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
-  if (!u) { bcrypt.compareSync(password, '$2a$12$invalidinvalidinvalidinvalidinvalidinva'); return null; }
-  if (!bcrypt.compareSync(password, u.password_hash)) return null;
-  return u;
+  // Un compte 'member' (Discord) porte le hash '!' : pas connectable par mot de
+  // passe, mais il doit coûter le même temps qu'un compte normal.
+  const hash = (u && typeof u.password_hash === 'string' && u.password_hash.length === 60)
+    ? u.password_hash : DUMMY_HASH;
+  const ok = bcrypt.compareSync(password, hash);
+  return (u && ok && hash !== DUMMY_HASH) ? u : null;
 }
 
 // Époque de session : incrémentée pour invalider TOUTES les sessions panel d'un coup (#8).
@@ -46,25 +57,58 @@ export function bumpSessionEpoch() {
   return next;
 }
 
+// Époque de session PAR COMPTE : révoque les sessions d'un seul utilisateur
+// (changement de mot de passe) sans déconnecter tout le monde.
+export function getUserEpoch(userId) {
+  const row = db.prepare('SELECT session_epoch FROM users WHERE id = ?').get(userId);
+  return row?.session_epoch ?? 0;
+}
+export function bumpUserEpoch(userId) {
+  db.prepare('UPDATE users SET session_epoch = COALESCE(session_epoch, 0) + 1 WHERE id = ?').run(userId);
+  return getUserEpoch(userId);
+}
+
 export function issueSession(user) {
-  return jwt.sign({ sub: user.id, username: user.username, role: user.role, ep: getSessionEpoch() }, config.jwtSecret, {
-    expiresIn: '7d',
-  });
+  return jwt.sign({
+    typ: 'session',
+    sub: user.id,
+    username: user.username,
+    role: user.role,
+    ep: getSessionEpoch(),
+    uep: getUserEpoch(user.id),
+  }, config.jwtSecret, { expiresIn: '7d' });
+}
+
+/**
+ * Vérifie un cookie/jeton de session panel et renvoie l'utilisateur, ou null.
+ * Point de contrôle UNIQUE : la révocation (époque globale + époque du compte)
+ * doit s'appliquer partout où une session est acceptée — API REST, WebSocket
+ * panel et flux OAuth. La dupliquer, c'est laisser un cookie révoqué passer
+ * par la porte qu'on a oublié de fermer.
+ */
+export function verifySessionUser(token) {
+  if (!token) return null;
+  let payload;
+  try { payload = jwt.verify(token, config.jwtSecret, { algorithms: ['HS256'] }); } catch { return null; }
+  // Tous les jetons du service partagent le même secret : un jeton éditeur ou
+  // média ne doit jamais être accepté comme session. (Les sessions émises avant
+  // l'ajout de `typ` n'en portent pas : absence tolérée, valeur étrangère non.)
+  if (payload.typ !== undefined && payload.typ !== 'session') return null;
+  if ((payload.ep ?? 0) !== getSessionEpoch()) return null;
+  const user = db.prepare('SELECT id, username, role, discord_id, discord_username, session_epoch FROM users WHERE id = ?')
+    .get(payload.sub);
+  if (!user) return null;
+  if ((payload.uep ?? 0) !== (user.session_epoch ?? 0)) return null;
+  return user;
 }
 
 export function panelAuth(req, res, next) {
   const token = req.cookies?.md_session || (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return res.status(401).json({ error: 'Not authenticated' });
-  try {
-    const payload = jwt.verify(token, config.jwtSecret);
-    if ((payload.ep ?? 0) !== getSessionEpoch()) return res.status(401).json({ error: 'Session revoked' });
-    const user = db.prepare('SELECT id, username, role, discord_id, discord_username FROM users WHERE id = ?').get(payload.sub);
-    if (!user) return res.status(401).json({ error: 'Invalid session' });
-    req.user = user;
-    next();
-  } catch {
-    return res.status(401).json({ error: 'Session expired' });
-  }
+  const user = verifySessionUser(token);
+  if (!user) return res.status(401).json({ error: 'Session expired or revoked' });
+  req.user = user;
+  next();
 }
 
 export function requireAdmin(req, res, next) {

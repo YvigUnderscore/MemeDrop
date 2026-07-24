@@ -13,8 +13,7 @@
 
 import { WebSocketServer } from 'ws';
 import { URL } from 'node:url';
-import jwt from 'jsonwebtoken';
-import { authenticateDevice } from './auth.js';
+import { authenticateDevice, verifySessionUser } from './auth.js';
 import { config } from './config.js';
 import { db, now } from './db.js';
 import { logger } from './logger.js';
@@ -239,11 +238,26 @@ function verifyPanelCookie(req) {
   const cookie = req.headers.cookie || '';
   const m = /(?:^|;\s*)md_session=([^;]+)/.exec(cookie);
   if (!m) return null;
-  try {
-    const payload = jwt.verify(decodeURIComponent(m[1]), config.jwtSecret);
-    const user = db.prepare('SELECT id, username, role FROM users WHERE id = ?').get(payload.sub);
-    return user || null;
-  } catch { return null; }
+  // Même contrôle que l'API REST, révocation comprise : sans cela un cookie
+  // révoqué (logout-all, changement de mot de passe) restait recevable ici et
+  // continuait de recevoir les événements de modération en temps réel.
+  return verifySessionUser(decodeURIComponent(m[1]));
+}
+
+/**
+ * Ferme les connexions panel d'un compte (ou toutes si userId est null).
+ * Le handshake n'authentifie qu'à l'ouverture : sans cette coupure, une session
+ * révoquée garderait son flux d'événements jusqu'à déconnexion réseau.
+ */
+export function closePanelSessions(userId = null) {
+  let n = 0;
+  for (const ws of [...panelConns]) {
+    if (userId != null && ws.userId !== userId) continue;
+    try { ws.close(4001, 'session revoked'); } catch { /* ignore */ }
+    panelConns.delete(ws);
+    n++;
+  }
+  return n;
 }
 
 export function initWebSocket(server) {

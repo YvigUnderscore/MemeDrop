@@ -15,7 +15,13 @@ services:
     container_name: memedrop
     restart: unless-stopped
     ports:
-      - "${PORT:-8080}:8080"
+      # Publié sur la boucle locale uniquement : le rate limiting s'appuie sur
+      # X-Forwarded-For (trust proxy), qu'un client joignant le port en direct
+      # peut forger pour se donner un quota neuf à chaque tentative. Le reverse
+      # proxy, lui, écrase/complète l'en-tête et reste la seule voie d'accès.
+      # Sans reverse proxy, remplacer par "${PORT:-8080}:8080" ET retirer le
+      # `trust proxy` dans server/src/app.js.
+      - "127.0.0.1:${PORT:-8080}:8080"
     environment:
       # Everything is OPTIONAL. Missing secrets are auto-generated on first boot
       # and persisted in /data/.secrets.json ; the admin password is printed in
