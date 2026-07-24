@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { db, now, audit } from '../db.js';
 import { config } from '../config.js';
-import { verifyPassword, issueSession, panelAuth, requireAdmin } from '../auth.js';
+import {
+  verifyPassword, issueSession, panelAuth, requireAdmin, verifySessionUser, bumpUserEpoch,
+} from '../auth.js';
+import { closePanelSessions } from '../wsHub.js';
 import {
   isOAuthEnabled, createState, verifyState, buildAuthorizeUrl, exchangeCode, fetchDiscordUser,
 } from '../discordOAuth.js';
@@ -24,10 +26,10 @@ router.post('/login', asyncHandler((req, res) => {
     password: z.string().min(1).max(200),
   }).parse(req.body);
   const user = verifyPassword(username, password);
-  if (!user) { audit(username, 'auth.login.fail'); return res.status(401).json({ error: 'Invalid credentials' }); }
+  if (!user) { audit(username, 'auth.login.fail', '', req.ip); return res.status(401).json({ error: 'Invalid credentials' }); }
   const token = issueSession(user);
   res.cookie('md_session', token, sessionCookieOpts());
-  audit(username, 'auth.login.ok');
+  audit(username, 'auth.login.ok', '', req.ip);
   res.json({ user: { id: user.id, username: user.username, role: user.role } });
 }));
 
@@ -79,7 +81,15 @@ router.post('/change-password', panelAuth, asyncHandler((req, res) => {
   const u = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
   if (!bcrypt.compareSync(current, u.password_hash)) return res.status(403).json({ error: 'Current password is incorrect' });
   db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(bcrypt.hashSync(nextPw, 12), u.id);
-  audit(req.user.username, 'auth.password.change');
+  // Révoque les AUTRES sessions de ce compte : changer son mot de passe est le
+  // réflexe de quelqu'un qui se sait compromis, et doit donc déconnecter un
+  // éventuel cookie volé (il restait valide jusqu'à 7 jours).
+  bumpUserEpoch(u.id);
+  closePanelSessions(u.id);
+  // …puis remet la session courante à jour, pour ne pas déconnecter l'auteur
+  // du changement du navigateur qu'il est en train d'utiliser.
+  res.cookie('md_session', issueSession(u), sessionCookieOpts());
+  audit(req.user.username, 'auth.password.change', '', req.ip);
   res.json({ ok: true });
 }));
 
@@ -129,13 +139,10 @@ function oauthNonceCookieOpts() {
 }
 
 // Lit l'id du compte panel connecté à partir du cookie de session (ou null).
+// Passe par verifySessionUser : une session révoquée ne doit pas pouvoir
+// démarrer une liaison de compte Discord.
 function currentUserId(req) {
-  const token = req.cookies?.md_session;
-  if (!token) return null;
-  try {
-    const payload = jwt.verify(token, config.jwtSecret);
-    return db.prepare('SELECT id FROM users WHERE id = ?').get(payload.sub)?.id ?? null;
-  } catch { return null; }
+  return verifySessionUser(req.cookies?.md_session)?.id ?? null;
 }
 
 // Démarre le flux : intent=login (par défaut) ou intent=link (requiert une session).

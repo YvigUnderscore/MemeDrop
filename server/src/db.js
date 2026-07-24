@@ -269,14 +269,23 @@ for (const col of ['name_color TEXT', 'name_glow TEXT']) {
 }
 // Un compte Discord ne peut être lié qu'à un seul compte panel (empêche l'usurpation).
 try { db.prepare('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_discord ON users(discord_id) WHERE discord_id IS NOT NULL').run(); } catch { /* ignore */ }
+// Migration douce : époque de session PAR COMPTE. Incrémentée au changement de
+// mot de passe pour révoquer les sessions de ce seul compte (un cookie volé ne
+// survit plus au changement de mot de passe). Complète sessionEpoch, qui reste
+// l'interrupteur global « déconnecter tout le monde ».
+try { db.prepare('ALTER TABLE users ADD COLUMN session_epoch INTEGER NOT NULL DEFAULT 0').run(); } catch { /* déjà présent */ }
+// Migration douce : IP source des événements d'audit — sans elle, une campagne
+// de brute-force est invisible et non attribuable a posteriori.
+try { db.prepare("ALTER TABLE audit_log ADD COLUMN ip TEXT DEFAULT ''").run(); } catch { /* déjà présent */ }
 
 export function now() {
   return Date.now();
 }
 
-export function audit(actor, action, detail = '') {
-  db.prepare('INSERT INTO audit_log (actor, action, detail, created_at) VALUES (?, ?, ?, ?)')
-    .run(String(actor || ''), String(action), typeof detail === 'string' ? detail : JSON.stringify(detail), now());
+export function audit(actor, action, detail = '', ip = '') {
+  db.prepare('INSERT INTO audit_log (actor, action, detail, ip, created_at) VALUES (?, ?, ?, ?, ?)')
+    .run(String(actor || ''), String(action), typeof detail === 'string' ? detail : JSON.stringify(detail),
+      String(ip || '').slice(0, 45), now());
 }
 
 // Réglages par défaut d'un channel (fusionnés avec settings JSON stockés).

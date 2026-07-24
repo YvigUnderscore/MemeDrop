@@ -9,7 +9,7 @@ import { isOAuthEnabled } from '../discordOAuth.js';
 import { panelAuth, requireAdmin, requireStaff, getSessionEpoch, bumpSessionEpoch } from '../auth.js';
 import { getGuidelines, setGuidelines } from '../guidelines.js';
 import { getRetentionDays, setRetentionDays, deleteAllMemes } from '../retention.js';
-import { channelStats } from '../wsHub.js';
+import { channelStats, closePanelSessions } from '../wsHub.js';
 import { signMediaUrl } from '../memeService.js';
 import { asyncHandler } from './helpers.js';
 
@@ -102,8 +102,11 @@ router.get('/security', requireAdmin, (req, res) => {
 // Déconnecte toutes les sessions panel (force une reconnexion partout).
 router.post('/security/logout-all', requireAdmin, asyncHandler((req, res) => {
   const epoch = bumpSessionEpoch();
-  audit(req.user.username, 'security.logout_all', String(epoch));
-  res.json({ ok: true, sessionEpoch: epoch });
+  // Coupe aussi les WebSocket panel déjà ouverts : ils ne sont authentifiés
+  // qu'au handshake et continueraient sinon à recevoir les événements.
+  const closed = closePanelSessions();
+  audit(req.user.username, 'security.logout_all', String(epoch), req.ip);
+  res.json({ ok: true, sessionEpoch: epoch, closedSockets: closed });
 }));
 
 // Révoque TOUS les appareils clients (ils devront être ré-appairés).

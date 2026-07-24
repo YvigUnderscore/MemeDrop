@@ -3,6 +3,19 @@ let cfg = null;
 const $ = (id) => document.getElementById(id);
 const ANCHORS = ['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'];
 
+// Affiche un message d'erreur dans un conteneur. Le texte vient du serveur
+// (champ `error` d'une réponse JSON) : il est posé via textContent, jamais
+// interpolé dans du HTML — l'utilisateur peut s'appairer à une URL arbitraire,
+// et un serveur hostile injecterait sinon du script dans cette fenêtre.
+function showError(containerId, message) {
+  const box = $(containerId);
+  if (!box) return;
+  const div = document.createElement('div');
+  div.className = 'muted small';
+  div.textContent = message;
+  box.replaceChildren(div);
+}
+
 // --- Onglets ---
 document.querySelectorAll('#tabs button').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('#tabs button').forEach((x) => x.classList.remove('active'));
@@ -34,7 +47,7 @@ async function loadBlocks() {
       del.onclick = async () => { await api.removeBlock(b.senderId); loadBlocks(); };
       row.append(info, del); list.appendChild(row);
     });
-  } catch (e) { $('blocksList').innerHTML = `<div class="muted small">${e.message}</div>`; }
+  } catch (e) { showError('blocksList', e.message); }
 }
 $('blockAdd').onclick = async () => {
   const v = $('blockPick').value; if (!v) return;
@@ -63,7 +76,7 @@ async function loadSocial() {
       div.append(info, del);
       sl.appendChild(div);
     });
-  } catch (e) { $('schedList').innerHTML = `<div class="muted small">${e.message}</div>`; }
+  } catch (e) { showError('schedList', e.message); }
 
   try {
     const members = await api.membersSettings();
@@ -86,7 +99,7 @@ async function loadSocial() {
       div.appendChild(info);
       ml.appendChild(div);
     });
-  } catch (e) { $('membersList').innerHTML = `<div class="muted small">${e.message}</div>`; }
+  } catch (e) { showError('membersList', e.message); }
 }
 
 // --- Statut connexion ---
