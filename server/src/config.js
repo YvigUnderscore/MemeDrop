@@ -37,6 +37,17 @@ function autoSecret(name, bytes = 32) {
   return v;
 }
 
+// TRUST_PROXY accepte les mêmes valeurs qu'Express : un nombre de sauts, `false`
+// pour ne rien croire, ou une liste d'IP/CIDR/noms prédéfinis
+// (`loopback`, `linklocal`, `uniquelocal`).
+function parseTrustProxy(raw) {
+  const v = String(raw ?? '').trim();
+  if (!v) return 'loopback, uniquelocal, linklocal';
+  if (/^(false|off|0|none)$/i.test(v)) return false;
+  if (/^\d+$/.test(v)) return parseInt(v, 10);
+  return v;
+}
+
 const WEAK_VALUES = new Set([
   'change_me_openssl_rand_hex_32', 'change_me_strong_password',
   'dev-insecure-secret-change-me', 'dev-insecure-encryption-key-change-me', 'admin', 'password',
@@ -97,4 +108,14 @@ export const config = {
     maxTextLength: parseInt(process.env.MAX_TEXT_LENGTH || '280', 10),
   },
   logLevel: process.env.LOG_LEVEL || 'info',
+  // Quels intermédiaires ont le droit de renseigner X-Forwarded-For.
+  // Le rate limiting (dont celui du login) compte par IP cliente, et cette IP
+  // est lue dans X-Forwarded-For : si l'on fait confiance à n'importe quel
+  // appelant, il suffit d'inventer l'en-tête pour obtenir un quota neuf à
+  // chaque tentative. Défaut : on ne fait confiance qu'aux intermédiaires
+  // joignables en loopback ou en adressage privé (reverse proxy sur l'hôte ou
+  // en conteneur) — une requête venue d'une IP publique ne peut donc pas
+  // usurper l'en-tête. Mettre l'IP exacte du proxy pour durcir davantage,
+  // ou `false` pour ne jamais faire confiance à X-Forwarded-For.
+  trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
 };

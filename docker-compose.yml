@@ -15,13 +15,15 @@ services:
     container_name: memedrop
     restart: unless-stopped
     ports:
-      # Publié sur la boucle locale uniquement : le rate limiting s'appuie sur
-      # X-Forwarded-For (trust proxy), qu'un client joignant le port en direct
-      # peut forger pour se donner un quota neuf à chaque tentative. Le reverse
-      # proxy, lui, écrase/complète l'en-tête et reste la seule voie d'accès.
-      # Sans reverse proxy, remplacer par "${PORT:-8080}:8080" ET retirer le
-      # `trust proxy` dans server/src/app.js.
-      - "127.0.0.1:${PORT:-8080}:8080"
+      # Publié sur toutes les interfaces : un reverse proxy en conteneur
+      # (cloudflared, nginx, Nginx Proxy Manager…) a sa propre boucle locale et
+      # ne peut PAS joindre un port publié sur 127.0.0.1 de l'hôte — s'y limiter
+      # rend le service injoignable derrière ce type de frontal.
+      # La protection contre l'usurpation de X-Forwarded-For (qui fausserait le
+      # rate limiting du login) ne repose donc pas sur ce binding mais sur
+      # TRUST_PROXY, côté application. Si le port est exposé à des clients non
+      # fiables, renseigner TRUST_PROXY avec l'IP exacte du proxy.
+      - "${PORT:-8080}:8080"
     environment:
       # Everything is OPTIONAL. Missing secrets are auto-generated on first boot
       # and persisted in /data/.secrets.json ; the admin password is printed in
@@ -44,6 +46,8 @@ services:
       MAX_AUDIO_DURATION_S: ${MAX_AUDIO_DURATION_S:-15}
       MAX_TEXT_LENGTH: ${MAX_TEXT_LENGTH:-280}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Qui a le droit de renseigner X-Forwarded-For (voir .env.example).
+      TRUST_PROXY: ${TRUST_PROXY:-}
       NODE_ENV: production
       DATA_DIR: /data
     volumes:

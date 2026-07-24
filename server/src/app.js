@@ -53,7 +53,9 @@ function csrfGuard(req, res, next) {
 
 export function createApp() {
   const app = express();
-  app.set('trust proxy', 1);
+  // Voir config.trustProxy : la valeur décide qui peut renseigner
+  // X-Forwarded-For, donc l'IP sur laquelle porte le rate limiting.
+  app.set('trust proxy', config.trustProxy);
   app.disable('x-powered-by');
 
   app.use(helmet({
