@@ -1,14 +1,14 @@
-# 🎬 MemeDrop
+# 🎬 MemeBomb
 
 **Drop memes (image / GIF / video / sound) + text straight onto your friends' screens**, triggered from a Discord bot or a full web editor.
 
-MemeDrop is **self-hosted**, **free and open-source (MIT)**, built to be **transparent** (no hidden telemetry, fully readable code) and **safe** (strict media validation, ffmpeg re-transcoding, text moderation, mandatory whitelist).
+MemeBomb is **self-hosted**, **free and open-source (MIT)**, built to be **transparent** (no hidden telemetry, fully readable code) and **safe** (strict media validation, ffmpeg re-transcoding, text moderation, mandatory whitelist).
 
-Repository: **https://github.com/YvigUnderscore/MemeDrop**
+Repository: **https://github.com/YvigUnderscore/MemeBomb**
 
 ```
 ┌──────────────┐         ┌────────────────────────────┐        ┌────────────────────┐
-│  Discord bot │──/meme──▶│  MemeDrop server (Docker)  │──WS───▶│  Client (overlay)  │
+│  Discord bot │──/meme──▶│  MemeBomb server (Docker)  │──WS───▶│  Client (overlay)  │
 │  or Editor   │         │  API · WS · Moderation     │        │  Windows .exe      │
 └──────────────┘         │  Web panel · SQLite        │        │  16:9 · overlay    │
                          └────────────────────────────┘        └────────────────────┘
@@ -43,22 +43,22 @@ Repository: **https://github.com/YvigUnderscore/MemeDrop**
 
 ### 1. Server (Docker — zero-config)
 ```bash
-git clone https://github.com/YvigUnderscore/MemeDrop.git
-cd MemeDrop
+git clone https://github.com/YvigUnderscore/MemeBomb.git
+cd MemeBomb
 docker compose up -d
-docker logs memedrop   # the generated admin password is printed on first start
+docker logs MemeBomb   # the generated admin password is printed on first start
 ```
 Panel at `http://<host>:8080`. Optional settings (Discord bot, Discord sign-in, Giphy…): copy `.env.example` to `.env` and fill what you need, then `docker compose up -d` again.
 
 ➡️ Detailed guide (TrueNAS Scale & any Docker host): [`docs/INSTALL_TRUENAS.md`](docs/INSTALL_TRUENAS.md)
 
 ### 2. Client (Windows)
-Download `MemeDrop-Setup-x.y.z.exe` from the *Releases* (or build it, see [`docs/CLIENT.md`](docs/CLIENT.md)), run it, then either paste the **server URL + pairing code**, or just run `/link` in Discord to get a code.
+Download `MemeBomb-Setup-x.y.z.exe` from the *Releases* (or build it, see [`docs/CLIENT.md`](docs/CLIENT.md)), run it, then either paste the **server URL + pairing code**, or just run `/link` in Discord to get a code.
 
 ## 📦 Repository layout
 
 ```
-MemeDrop/
+MemeBomb/
 ├── server/            # Node backend (bot + API + WS + serves panel & editor)
 ├── panel/             # React web panel (built into the Docker image)
 ├── web-editor/        # Standalone meme editor (served at /compose)
@@ -75,7 +75,7 @@ MemeDrop/
 **Client**: Electron 33, ws.
 **Optional third-party services**: Discord API (bot & OAuth), GIPHY API (GIF search — needs a free `GIPHY_API_KEY`), myinstants.com (soundboard search).
 
-All dependencies are open-source; MemeDrop itself is and will stay **free and open-source**.
+All dependencies are open-source; MemeBomb itself is and will stay **free and open-source**.
 
 ## 🔐 Transparency & antivirus
 - 100% readable code, MIT license, **no obfuscation**.
