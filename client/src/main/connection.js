@@ -1,5 +1,5 @@
 // ============================================================
-//  Connexion au serveur MemeDrop : appairage, config, WebSocket,
+//  Connexion au serveur MemeBomb : appairage, config, WebSocket,
 //  et téléchargement des médias à DÉBIT LIMITÉ (défaut 5 MB/s).
 // ============================================================
 const fs = require('node:fs');
@@ -12,7 +12,7 @@ const crypto = require('node:crypto');
 const WebSocket = require('ws');
 const { EventEmitter } = require('node:events');
 
-const TMP_DIR = path.join(os.tmpdir(), 'memedrop-media');
+const TMP_DIR = path.join(os.tmpdir(), 'memebomb-media');
 fs.mkdirSync(TMP_DIR, { recursive: true });
 
 function httpJson(method, urlStr, { token, body } = {}) {
@@ -284,7 +284,7 @@ class Connection extends EventEmitter {
     const a = this.active();
     if (!a) return Promise.reject(new Error('Non appairé'));
     const { url, deviceToken } = a;
-    const boundary = '----MemeDrop' + crypto.randomBytes(12).toString('hex');
+    const boundary = '----MemeBomb' + crypto.randomBytes(12).toString('hex');
     const parts = [];
     for (const [k, v] of Object.entries(fields || {})) {
       parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${k}"\r\n\r\n${v}\r\n`));

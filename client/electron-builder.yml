@@ -1,17 +1,17 @@
 # ============================================================
-#  Configuration de build du client MemeDrop (electron-builder)
-#  Build :  npm install  &&  npm run dist   → client/dist/MemeDrop-Setup-x.y.z.exe
+#  Configuration de build du client MemeBomb (electron-builder)
+#  Build :  npm install  &&  npm run dist   → client/dist/MemeBomb-Setup-x.y.z.exe
 # ============================================================
-appId: com.memedrop.client
-productName: MemeDrop
-copyright: MIT © MemeDrop
+appId: com.memebomb.client
+productName: MemeBomb
+copyright: MIT © MemeBomb
 
 # Publication des releases sur GitHub (npm run release, avec GH_TOKEN défini).
-# Le client vérifie github.com/YvigUnderscore/MemeDrop/releases/latest au démarrage.
+# Le client vérifie github.com/YvigUnderscore/MemeBomb/releases/latest au démarrage.
 publish:
   provider: github
   owner: YvigUnderscore
-  repo: MemeDrop
+  repo: MemeBomb
 
 directories:
   output: dist
@@ -28,7 +28,7 @@ win:
     - target: nsis
       arch:
         - x64
-  artifactName: "MemeDrop-Setup-${version}.${ext}"
+  artifactName: "MemeBomb-Setup-${version}.${ext}"
   # Ajoutez ici votre certificat pour signer (fortement recommandé, cf docs/CLIENT.md) :
   # certificateFile: build/cert.pfx
   # certificatePassword: ${env.CSC_KEY_PASSWORD}
@@ -39,7 +39,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: MemeDrop
+  shortcutName: MemeBomb
 
 # Pas de compression maximale (les binaires compressés type UPX déclenchent les AV).
 compression: normal

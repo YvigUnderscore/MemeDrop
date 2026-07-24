@@ -13,7 +13,7 @@
   let active = 0;              // memes actuellement à l'écran
   let cooldownUntil = 0;
   let settings = null;
-  const api = window.memedrop;
+  const api = window.memebomb;
 
   api.getConfig().then((c) => { settings = c; });
   api.onOverlaySettings((c) => { settings = c; });

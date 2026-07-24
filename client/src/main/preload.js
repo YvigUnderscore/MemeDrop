@@ -2,7 +2,7 @@
 // contextIsolation = true, nodeIntegration = false → aucun accès Node dans les pages.
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('memedrop', {
+contextBridge.exposeInMainWorld('memebomb', {
   // --- Config / réglages ---
   getConfig: () => ipcRenderer.invoke('config:get'),
   setConfig: (patch) => ipcRenderer.invoke('config:set', patch),

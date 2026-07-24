@@ -8,6 +8,35 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 fs.mkdirSync(path.join(DATA_DIR, 'media'), { recursive: true });
 fs.mkdirSync(path.join(DATA_DIR, 'tmp'), { recursive: true });
 
+// ---- Migration : memedrop.sqlite → memebomb.sqlite ----------------------
+// Le produit s'appelait « MemeDrop » avant d'être renommé « MemeBomb », et la
+// base portait donc l'ancien nom. Sans ce renommage, une installation déjà en
+// production repartirait sur une base VIDE au premier démarrage suivant la mise
+// à jour : perte de tout l'historique, des channels, des whitelists et des
+// appareils appairés. On renomme donc l'ancien fichier s'il existe et que le
+// nouveau n'existe pas encore (jamais d'écrasement).
+// La base tourne en WAL (journal_mode = WAL) : les fichiers annexes -wal et -shm
+// doivent suivre, sinon SQLite retrouverait un journal orphelin à côté d'une
+// base renommée.
+// À CONSERVER tant que des installations antérieures au renommage peuvent
+// encore être mises à jour.
+const LEGACY_DB_PATH = path.join(DATA_DIR, 'memedrop.sqlite');
+const DB_PATH = path.join(DATA_DIR, 'memebomb.sqlite');
+try {
+  if (fs.existsSync(LEGACY_DB_PATH) && !fs.existsSync(DB_PATH)) {
+    for (const suffix of ['', '-wal', '-shm']) {
+      if (fs.existsSync(LEGACY_DB_PATH + suffix)) fs.renameSync(LEGACY_DB_PATH + suffix, DB_PATH + suffix);
+    }
+    // eslint-disable-next-line no-console
+    console.log(`[config] Base migrée : ${LEGACY_DB_PATH} → ${DB_PATH} (renommage MemeDrop → MemeBomb)`);
+  }
+} catch (e) {
+  // Jamais bloquant : on démarre quand même, mais on prévient bruyamment car la
+  // base utilisée ne sera pas celle qui contient les données.
+  // eslint-disable-next-line no-console
+  console.warn(`[config] Migration de la base impossible (${e.message}) — ancienne base laissée en place.`);
+}
+
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_PROD = NODE_ENV === 'production';
 
@@ -51,7 +80,7 @@ for (const [name, minLen] of [['JWT_SECRET', 32], ['ENCRYPTION_KEY', 16], ['ADMI
 if (secretProblems.length) {
   const msg = `[SECURITY] Non-compliant secrets:\n  - ${secretProblems.join('\n  - ')}`;
   if (IS_PROD) {
-    throw new Error(`${msg}\nSet strong values (openssl rand -hex 32) or simply REMOVE them to let MemeDrop auto-generate.`);
+    throw new Error(`${msg}\nSet strong values (openssl rand -hex 32) or simply REMOVE them to let MemeBomb auto-generate.`);
   }
   // eslint-disable-next-line no-console
   console.warn(`\x1b[33m${msg}\n  → Tolerated in development only.\x1b[0m`);
@@ -73,7 +102,7 @@ export const config = {
   dataDir: DATA_DIR,
   mediaDir: path.join(DATA_DIR, 'media'),
   tmpDir: path.join(DATA_DIR, 'tmp'),
-  dbPath: path.join(DATA_DIR, 'memedrop.sqlite'),
+  dbPath: DB_PATH,
   admin: {
     username: process.env.ADMIN_USERNAME || 'admin',
     password: adminPassword,

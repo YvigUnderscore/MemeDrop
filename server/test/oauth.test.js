@@ -72,7 +72,7 @@ describe('OAuth Discord activé', () => {
     const state = stateFromLocation(start.headers.location);
     const r = await anon.get(`/api/auth/discord/callback?code=abc&state=${encodeURIComponent(state)}`);
     expect(r.status).toBe(400);
-    expect(r.text).toContain('No MemeDrop account');
+    expect(r.text).toContain('No MemeBomb account');
   });
 
   it('lie un compte Discord à une session panel puis permet le login', async () => {

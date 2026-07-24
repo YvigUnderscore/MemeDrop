@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { AuthAPI, DISCORD_LOGIN_URL } from '../lib/api.js';
 import { Spinner } from '../components/ui.jsx';
 
-const REPO_URL = 'https://github.com/YvigUnderscore/MemeDrop';
+const REPO_URL = 'https://github.com/YvigUnderscore/MemeBomb';
 
 // Emojis flottants du fond animé (positions/durées fixes pour un rendu stable).
 const FLOATERS = [
@@ -58,8 +58,8 @@ export default function Login() {
 
       <div className="w-full max-w-sm relative z-10 login-card-in">
         <div className="flex flex-col items-center mb-8">
-          <img src="/logo.png" alt="MemeDrop" className="w-24 h-24 rounded-3xl shadow-glow mb-4 login-logo" />
-          <h1 className="text-4xl font-extrabold tracking-tight">MemeDrop</h1>
+          <img src="/logo.png" alt="MemeBomb" className="w-24 h-24 rounded-3xl shadow-glow mb-4 login-logo" />
+          <h1 className="text-4xl font-extrabold tracking-tight">MemeBomb</h1>
           <p className="text-muted text-sm mt-1.5 text-center">Drop memes on your friends' screens.<br />Sign in to join the fun.</p>
         </div>
 
@@ -105,7 +105,7 @@ export default function Login() {
 
         <p className="text-center text-xs text-muted mt-6 flex items-center justify-center gap-1.5">
           <a className="hover:text-ink transition flex items-center gap-1.5" href={REPO_URL} target="_blank" rel="noreferrer">
-            <Github size={13} /> Free &amp; open-source — YvigUnderscore/MemeDrop
+            <Github size={13} /> Free &amp; open-source — YvigUnderscore/MemeBomb
           </a>
         </p>
       </div>

@@ -1,8 +1,8 @@
-# MemeDrop — instructions projet
+# MemeBomb — instructions projet
 
 ## Architecture (rappel)
 
-- `server/` — API Express + WebSocket (Node ESM), servie sur `memedrop.yvig.fr`, déployée via Docker.
+- `server/` — API Express + WebSocket (Node ESM), servie sur `memebomb.yvig.fr`, déployée via Docker.
 - `panel/` — SPA React (dashboard), buildée dans `server/public/`.
 - `web-editor/` — éditeur de meme autonome, servi sur `/compose`.
 - `client/` — application desktop Electron (Windows), distribuée en installeur NSIS.
@@ -24,8 +24,8 @@ Procédure :
    GH_TOKEN=<token> npm run release
    ```
    `npm run release` = `electron-builder --win --x64 --publish always` → build l'installeur
-   `MemeDrop-Setup-<version>.exe` (+ `.blockmap` + `latest.yml`) et le pousse sur
-   `github.com/YvigUnderscore/MemeDrop/releases`. Sans `GH_TOKEN`, utiliser `npm run dist` (build
+   `MemeBomb-Setup-<version>.exe` (+ `.blockmap` + `latest.yml`) et le pousse sur
+   `github.com/YvigUnderscore/MemeBomb/releases`. Sans `GH_TOKEN`, utiliser `npm run dist` (build
    seul, dans `client/dist/`) puis attacher l'installeur à une release manuellement.
 4. Committer le bump de version + les notes.
 
@@ -33,7 +33,7 @@ Le tag de la release doit correspondre à la version (`v<version>`), c'est ce qu
 
 ## Mise à jour côté client
 
-Le client vérifie `github.com/YvigUnderscore/MemeDrop/releases/latest` au démarrage (puis toutes
+Le client vérifie `github.com/YvigUnderscore/MemeBomb/releases/latest` au démarrage (puis toutes
 les 6 h) via [client/src/main/updater.js](client/src/main/updater.js). Si une version plus récente
 existe : notification système + item tray « Update available » qui ouvre le téléchargement.
 Vérification manuelle possible via le menu tray « Check for updates… ». Pas d'auto-update

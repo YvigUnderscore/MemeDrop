@@ -1,5 +1,5 @@
 // ============================================================
-//  MemeDrop client — processus principal.
+//  MemeBomb client — processus principal.
 // ============================================================
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -49,7 +49,7 @@ function makeWindow(file, { width, height, title }) {
 
 function openSettings() {
   if (settingsWin && !settingsWin.isDestroyed()) { settingsWin.focus(); return; }
-  settingsWin = makeWindow('settings/settings.html', { width: 940, height: 760, title: 'MemeDrop — Settings' });
+  settingsWin = makeWindow('settings/settings.html', { width: 940, height: 760, title: 'MemeBomb — Settings' });
   settingsWin.on('closed', () => { settingsWin = null; });
 }
 // L'éditeur de meme vit désormais sur le site : on ouvre <url-serveur>/compose
@@ -282,7 +282,7 @@ function updateTray() {
   ] : [];
 
   const menu = Menu.buildFromTemplate([
-    { label: `MemeDrop — ${statusLabel}`, enabled: false },
+    { label: `MemeBomb — ${statusLabel}`, enabled: false },
     { label: active ? `Channel: ${active.channel?.name}` : 'No channel', enabled: false },
     ...channelsSub,
     { type: 'separator' },
@@ -310,7 +310,7 @@ function updateTray() {
     { label: 'Test placement', click: () => sendTestMeme() },
     { label: 'Quit', click: () => { app.isQuitting = true; app.quit(); } },
   ]);
-  tray.setToolTip(`MemeDrop — ${statusLabel}`);
+  tray.setToolTip(`MemeBomb — ${statusLabel}`);
   tray.setContextMenu(menu);
 }
 
@@ -320,21 +320,21 @@ function manualUpdateCheck() {
   updater.checkForUpdates({ notify: false }).then((r) => {
     updateTray();
     if (r.error) {
-      dialog.showMessageBox({ type: 'warning', title: 'MemeDrop', message: 'Update check failed', detail: r.error });
+      dialog.showMessageBox({ type: 'warning', title: 'MemeBomb', message: 'Update check failed', detail: r.error });
     } else if (r.updateAvailable) {
       dialog.showMessageBox({
-        type: 'info', title: 'MemeDrop', message: `Version ${r.latest} is available`,
+        type: 'info', title: 'MemeBomb', message: `Version ${r.latest} is available`,
         detail: `You have ${r.current}. Download the new version?`, buttons: ['Download', 'Later'], defaultId: 0, cancelId: 1,
       }).then((res) => { if (res.response === 0) updater.openDownload(); });
     } else {
-      dialog.showMessageBox({ type: 'info', title: 'MemeDrop', message: 'You are up to date', detail: `Version ${r.current}` });
+      dialog.showMessageBox({ type: 'info', title: 'MemeBomb', message: 'You are up to date', detail: `Version ${r.current}` });
     }
   });
 }
 
 function sendTestMeme() {
   overlay.sendMeme({
-    id: 'test', kind: 'text', text: 'MemeDrop — placement test 🎬', sender: 'you',
+    id: 'test', kind: 'text', text: 'MemeBomb — placement test 🎬', sender: 'you',
     media: null, localPath: null,
     options: { anchor: store.get().overlay.anchor, scale: store.get().overlay.sizePct / 100, durationS: 4, opacity: store.get().overlay.opacity, animation: 'bounce', textPos: 'center', textColor: '#ffffff', volume: 0 },
   });

@@ -1,6 +1,6 @@
-# 🔐 Sécurité de MemeDrop
+# 🔐 Sécurité de MemeBomb
 
-MemeDrop manipule des médias envoyés par des tiers et s'affiche par-dessus tout
+MemeBomb manipule des médias envoyés par des tiers et s'affiche par-dessus tout
 l'écran : la sécurité est traitée sérieusement et **par défense en profondeur**.
 Ce document décrit les protections en place.
 

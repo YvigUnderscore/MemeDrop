@@ -156,7 +156,7 @@ async function handleMeme(interaction, channel) {
     await interaction.editReply(
       result.warmupRemainS
         ? `⏳ Meme queued: it will go out in ~${result.warmupRemainS}s (post-connection warmup).`
-        : '⏳ Meme queued: launch MemeDrop and stay connected a couple of minutes so it goes out (anti "send & run" warmup).');
+        : '⏳ Meme queued: launch MemeBomb and stay connected a couple of minutes so it goes out (anti "send & run" warmup).');
     return;
   }
   await interaction.editReply(

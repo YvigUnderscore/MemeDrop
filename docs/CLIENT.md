@@ -1,10 +1,10 @@
-# 🖥️ Client MemeDrop (Windows)
+# 🖥️ Client MemeBomb (Windows)
 
 Le client reçoit les memes en **overlay** et permet d'en créer via un **éditeur**.
 
 ## 1. Installation (utilisateur final)
 
-1. Récupérez **`MemeDrop-Setup-x.y.z.exe`** (dossier `client/dist/` après build,
+1. Récupérez **`MemeBomb-Setup-x.y.z.exe`** (dossier `client/dist/` après build,
    ou depuis les *Releases*).
 2. Lancez l'installateur, suivez les étapes (raccourci bureau + menu Démarrer).
 3. Au premier lancement, la fenêtre **Réglages** s'ouvre :
@@ -52,9 +52,9 @@ Raccourci par défaut **Ctrl+Alt+M** (configurable), ou tray → *Éditeur de me
 ```bash
 cd client
 npm install
-npm run dist      # → client/dist/MemeDrop-Setup-x.y.z.exe
+npm run dist      # → client/dist/MemeBomb-Setup-x.y.z.exe
 # ou version portable, sans installateur :
-npm run pack      # → client/dist/win-unpacked/MemeDrop.exe
+npm run pack      # → client/dist/win-unpacked/MemeBomb.exe
 ```
 
 > **Windows — erreur de symlink au build ?**
@@ -70,7 +70,7 @@ Développement (hot main process) : `npm start`.
 ## 4. Antivirus & transparence
 
 Un exécutable Electron **non signé** peut déclencher un faux-positif (SmartScreen,
-certains AV) — c'est courant et **pas** le signe d'un logiciel malveillant. MemeDrop
+certains AV) — c'est courant et **pas** le signe d'un logiciel malveillant. MemeBomb
 est **open-source (MIT)**, non obfusqué, et **n'a aucun comportement intrusif**
 (pas d'injection dans d'autres applis, pas de capture d'écran, pas de lecture mémoire).
 

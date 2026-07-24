@@ -1,4 +1,4 @@
-# 📜 Règles de la communauté MemeDrop
+# 📜 Règles de la communauté MemeBomb
 
 Ces règles sont la version par défaut affichée dans le client et via
 `/guidelines` sur Discord. Elles sont **modifiables** depuis le panel

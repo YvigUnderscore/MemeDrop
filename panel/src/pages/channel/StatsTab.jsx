@@ -59,7 +59,7 @@ export default function StatsTab({ channel }) {
 
   const exportSenders = () => data && exportCSV(`${channel.slug}-expediteurs.csv`,
     [{ key: 'name', label: 'Membre' }, { key: 'sender', label: 'ID' }, { key: 'c', label: 'Memes' }], data.topSenders);
-  const exportPng = () => data && exportSummaryPNG(`${channel.slug}-stats.png`, `MemeDrop — ${channel.name}`, [
+  const exportPng = () => data && exportSummaryPNG(`${channel.slug}-stats.png`, `MemeBomb — ${channel.name}`, [
     { label: 'Memes sent', value: data.totals.sent },
     { label: 'Confirmed displays', value: data.totals.displays },
     { label: 'Reactions', value: data.totals.reactions },

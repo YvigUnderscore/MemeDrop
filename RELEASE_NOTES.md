@@ -1,10 +1,10 @@
-# MemeDrop v1.2.1
+# MemeBomb v1.2.1
 
 Follow-up to v1.2.0: the sender's profile picture now always shows left of their name on the overlay — Discord avatar when known, Discord default avatar otherwise, colored initial badge as a last resort.
 
 ---
 
-# MemeDrop v1.2.0 — "Reliable Delivery"
+# MemeBomb v1.2.0 — "Reliable Delivery"
 
 Reliability release: fixes memes arriving empty, the client silently going deaf, and broken images in the panel/editor. Adds in-app update notifications.
 
@@ -31,9 +31,9 @@ Reliability release: fixes memes arriving empty, the client silently going deaf,
 
 ---
 
-# MemeDrop v1.1.0 — "Corner Pin"
+# MemeBomb v1.1.0 — "Corner Pin"
 
-The biggest MemeDrop release yet: full English UI, one-click Discord sign-in for everyone, a serious editor upgrade, and a zero-config install.
+The biggest MemeBomb release yet: full English UI, one-click Discord sign-in for everyone, a serious editor upgrade, and a zero-config install.
 
 ## ✨ New
 
@@ -72,6 +72,6 @@ The entire interface (panel, editor, desktop client, Discord bot, API errors) is
 ## 📦 Install / update
 
 - **Server**: `git pull && docker compose build && docker compose up -d` — or first install: `docker compose up -d` (see README).
-- **Client**: install `MemeDrop-Setup-1.1.0.exe` over your existing version (settings and pairing are kept).
+- **Client**: install `MemeBomb-Setup-1.1.0.exe` over your existing version (settings and pairing are kept).
 
-MemeDrop is and will stay free & open-source (MIT).
+MemeBomb is and will stay free & open-source (MIT).

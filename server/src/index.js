@@ -18,7 +18,7 @@ initWebSocket(server);
 
 ensureAdmin();
 server.listen(config.port, () => {
-  logger.info(`MemeDrop serveur démarré sur ${config.publicUrl} (port ${config.port})`);
+  logger.info(`MemeBomb serveur démarré sur ${config.publicUrl} (port ${config.port})`);
   startAllBots().catch((e) => logger.error('Démarrage des bots:', e.message));
   startRetentionJob();
   startSchedulerJob();

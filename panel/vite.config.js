@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // En dev, on proxifie l'API/WS/médias vers le serveur (port 8080 par défaut).
-const target = process.env.MEMEDROP_SERVER || 'http://localhost:8080';
+const target = process.env.MEMEBOMB_SERVER || 'http://localhost:8080';
 
 export default defineConfig({
   plugins: [react()],

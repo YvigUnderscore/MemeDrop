@@ -4,7 +4,7 @@
 //  fond image/vidéo/gif/son, son à l'apparition, placement avant envoi,
 //  planification, enregistrement en bibliothèque.
 // ============================================================
-const api = window.memedrop;
+const api = window.memebomb;
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, Number.isFinite(+v) ? +v : a));
 const EMOJIS = ['😂', '💀', '🔥', '👀', '🤡', '😭', '🥲', '😎', '👍', '🙏', '💯', '🚀', '❤️', '🎉', '🤔', '😳', '🗿', '🤨', '👑', '⭐', '✅', '❌', '🥶', '🤯', '🫡', '😏', '🙄', '😤', '🍑', '💥'];

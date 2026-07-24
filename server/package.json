@@ -1,7 +1,7 @@
 {
-  "name": "memedrop-server",
+  "name": "memebomb-server",
   "version": "1.0.0",
-  "description": "MemeDrop server — Discord bot, REST API, WebSocket hub, media pipeline and web panel.",
+  "description": "MemeBomb server — Discord bot, REST API, WebSocket hub, media pipeline and web panel.",
   "type": "module",
   "license": "MIT",
   "engines": {

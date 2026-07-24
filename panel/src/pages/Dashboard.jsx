@@ -43,7 +43,7 @@ export default function Dashboard() {
 
   if (!stats) return (
     <div className="space-y-6">
-      <div><h1 className="text-2xl font-extrabold">Dashboard</h1><p className="text-muted text-sm">Overview of your MemeDrop instance.</p></div>
+      <div><h1 className="text-2xl font-extrabold">Dashboard</h1><p className="text-muted text-sm">Overview of your MemeBomb instance.</p></div>
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">{Array.from({ length: 7 }).map((_, i) => <SkeletonCard key={i} />)}</div>
       <div className="card p-5 space-y-3">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
     </div>
@@ -54,7 +54,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold">Dashboard</h1>
-        <p className="text-muted text-sm">Overview of your MemeDrop instance.</p>
+        <p className="text-muted text-sm">Overview of your MemeBomb instance.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">

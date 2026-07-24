@@ -1,9 +1,9 @@
 {
-  "name": "memedrop-client",
-  "productName": "MemeDrop",
+  "name": "memebomb-client",
+  "productName": "MemeBomb",
   "version": "1.2.1",
-  "description": "MemeDrop — client desktop : reçoit et affiche les memes des copains en overlay.",
-  "author": "MemeDrop",
+  "description": "MemeBomb — client desktop : reçoit et affiche les memes des copains en overlay.",
+  "author": "MemeBomb",
   "license": "MIT",
   "main": "src/main/main.js",
   "type": "commonjs",

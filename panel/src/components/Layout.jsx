@@ -93,9 +93,9 @@ export default function Layout({ children }) {
     <aside className={`w-60 shrink-0 border-r border-border bg-surface/70 backdrop-blur flex flex-col p-4 gap-2
       fixed lg:sticky top-0 h-screen z-40 transition-transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
       <div className="flex items-center gap-2 px-2 py-3 mb-2">
-        <img src="/logo.png" alt="MemeDrop" className="w-10 h-10 rounded-xl shadow-glow" />
+        <img src="/logo.png" alt="MemeBomb" className="w-10 h-10 rounded-xl shadow-glow" />
         <div className="flex-1">
-          <div className="font-extrabold text-lg leading-none">MemeDrop</div>
+          <div className="font-extrabold text-lg leading-none">MemeBomb</div>
           <div className="text-[10px] text-muted uppercase tracking-widest">Panel</div>
         </div>
         <button className="lg:hidden text-muted hover:text-ink" onClick={() => setMobileOpen(false)} aria-label="Close menu"><X size={18} /></button>
@@ -151,7 +151,7 @@ export default function Layout({ children }) {
         <header className="lg:hidden flex items-center gap-3 p-4 border-b border-border sticky top-0 bg-surface/80 backdrop-blur z-20">
           <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="text-ink"><Menu size={22} /></button>
           <img src="/logo.png" alt="" className="w-7 h-7 rounded-lg" />
-          <span className="font-bold">MemeDrop</span>
+          <span className="font-bold">MemeBomb</span>
           <div className="ml-auto"><ConnDot /></div>
         </header>
         <main className="flex-1 min-w-0 p-6 md:p-8 max-w-[1400px] mx-auto w-full">{children}</main>

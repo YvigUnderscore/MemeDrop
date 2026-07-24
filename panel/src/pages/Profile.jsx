@@ -38,7 +38,7 @@ export default function Profile() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="text-2xl font-extrabold">Profile</h1>
-        <p className="text-muted text-sm">Your MemeDrop identity — what your friends see when you drop a meme.</p>
+        <p className="text-muted text-sm">Your MemeBomb identity — what your friends see when you drop a meme.</p>
       </div>
 
       <Card>
@@ -107,7 +107,7 @@ export default function Profile() {
               <button className="btn-ghost text-danger" onClick={unlinkDiscord}><Link2Off size={16} /> Unlink my Discord account</button>
             )}
             {isMember && (
-              <p className="text-xs text-muted">Your MemeDrop account exists through Discord: it cannot be unlinked.</p>
+              <p className="text-xs text-muted">Your MemeBomb account exists through Discord: it cannot be unlinked.</p>
             )}
           </div>
         ) : (

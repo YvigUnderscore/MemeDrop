@@ -1,6 +1,6 @@
 import { db } from './db.js';
 
-export const DEFAULT_GUIDELINES = `# MemeDrop community guidelines
+export const DEFAULT_GUIDELINES = `# MemeBomb community guidelines
 
 By sending a meme you agree to follow these rules. Breaking them leads to a
 warning, then losing your right to send, then a ban.

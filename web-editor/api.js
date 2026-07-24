@@ -1,6 +1,6 @@
 // ============================================================
 //  Adaptateur navigateur de l'éditeur web.
-//  Expose window.memedrop (même surface que le preload Electron) mais
+//  Expose window.memebomb (même surface que le preload Electron) mais
 //  implémenté via fetch() vers /api/client/*, puis charge editor.js.
 //
 //  Deux modes d'authentification :
@@ -85,7 +85,7 @@
     });
   }
 
-  window.memedrop = {
+  window.memebomb = {
     pickFile,
     fileDataUrl: (file) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); }),
     listChannels: async () => { const c = await getConfig(); return { accounts: [{ slug: c.channel.slug, name: c.channel.name }], activeSlug: c.channel.slug }; },

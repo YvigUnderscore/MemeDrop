@@ -1,14 +1,14 @@
-# Installing MemeDrop — TrueNAS Scale (and any Docker host)
+# Installing MemeBomb — TrueNAS Scale (and any Docker host)
 
-MemeDrop ships as a single Docker container (API + WebSocket + web panel + web editor + Discord bot). Installation is **zero-config**: every secret is auto-generated on first boot.
+MemeBomb ships as a single Docker container (API + WebSocket + web panel + web editor + Discord bot). Installation is **zero-config**: every secret is auto-generated on first boot.
 
 ## Option A — Docker Compose (any host: TrueNAS, Unraid, VPS, Raspberry Pi…)
 
 ```bash
-git clone https://github.com/YvigUnderscore/MemeDrop.git
-cd MemeDrop
+git clone https://github.com/YvigUnderscore/MemeBomb.git
+cd MemeBomb
 docker compose up -d
-docker logs memedrop        # ← the generated ADMIN PASSWORD is printed here on first start
+docker logs memebomb        # ← the generated ADMIN PASSWORD is printed here on first start
 ```
 
 The panel is available at `http://<host>:8080` (change the port with `PORT=` in `.env`).
@@ -27,8 +27,8 @@ After editing `.env`: `docker compose up -d` again.
 ## Option B — TrueNAS Scale UI (Custom App)
 
 1. **Apps → Discover Apps → Custom App**.
-2. Image: build it once on any machine with `docker build -t memedrop -f server/Dockerfile .` and push it to a registry, **or** use *Install via YAML* and paste the repo's `docker-compose.yml`.
-3. **Storage**: mount a dataset (e.g. `/mnt/tank/apps/memedrop`) to container path `/data` — this holds the SQLite database, media files and auto-generated secrets.
+2. Image: build it once on any machine with `docker build -t memebomb -f server/Dockerfile .` and push it to a registry, **or** use *Install via YAML* and paste the repo's `docker-compose.yml`.
+3. **Storage**: mount a dataset (e.g. `/mnt/tank/apps/memebomb`) to container path `/data` — this holds the SQLite database, media files and auto-generated secrets.
 4. **Networking**: expose container port `8080` on the port of your choice.
 5. **Environment**: set `PUBLIC_URL` to the address your friends will use (with a reverse proxy + HTTPS if exposed to the internet). Everything else is optional.
 6. Start the app, open the logs once: the generated admin password is printed on first boot.

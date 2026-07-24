@@ -75,7 +75,7 @@ export default function Admin() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-extrabold">Administration</h1>
-          <p className="text-muted text-sm">Global management of the MemeDrop server.</p>
+          <p className="text-muted text-sm">Global management of the MemeBomb server.</p>
         </div>
         <button className="btn-ghost" onClick={loadAll}><RefreshCw size={15} /> Refresh</button>
       </div>

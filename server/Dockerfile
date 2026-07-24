@@ -1,7 +1,7 @@
 # ============================================================
-#  MemeDrop — image serveur (panel web inclus)
+#  MemeBomb — image serveur (panel web inclus)
 #  Contexte de build attendu : racine du dépôt.
-#    docker build -f server/Dockerfile -t memedrop .
+#    docker build -f server/Dockerfile -t memebomb .
 # ============================================================
 
 # ---- Stage 1 : build du panel web --------------------------

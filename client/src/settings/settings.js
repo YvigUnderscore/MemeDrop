@@ -1,4 +1,4 @@
-const api = window.memedrop;
+const api = window.memebomb;
 let cfg = null;
 const $ = (id) => document.getElementById(id);
 const ANCHORS = ['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'];

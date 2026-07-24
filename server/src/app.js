@@ -138,7 +138,7 @@ export function createApp() {
     app.get('*', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
   } else {
     app.get('*', (req, res) => res.status(200).send(
-      '<h1>MemeDrop</h1><p>Le panel web n\'est pas encore buildé. Voir docs/CLIENT.md.</p>'));
+      '<h1>MemeBomb</h1><p>Le panel web n\'est pas encore buildé. Voir docs/CLIENT.md.</p>'));
   }
 
   app.use(errorMiddleware);

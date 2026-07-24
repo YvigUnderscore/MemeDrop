@@ -8,7 +8,7 @@
 const https = require('node:https');
 const { app, Notification, shell } = require('electron');
 
-const REPO = 'YvigUnderscore/MemeDrop';
+const REPO = 'YvigUnderscore/MemeBomb';
 const LATEST_API = `https://api.github.com/repos/${REPO}/releases/latest`;
 const RELEASES_URL = `https://github.com/${REPO}/releases/latest`;
 
@@ -27,7 +27,7 @@ function fetchLatestRelease() {
   return new Promise((resolve, reject) => {
     const req = https.get(LATEST_API, {
       // L'API GitHub exige un User-Agent, sinon 403.
-      headers: { 'User-Agent': `MemeDrop/${app.getVersion()}`, Accept: 'application/vnd.github+json' },
+      headers: { 'User-Agent': `MemeBomb/${app.getVersion()}`, Accept: 'application/vnd.github+json' },
       timeout: 10000,
     }, (res) => {
       if (res.statusCode !== 200) { res.resume(); reject(new Error(`HTTP ${res.statusCode}`)); return; }
@@ -59,7 +59,7 @@ async function checkForUpdates({ notify = true } = {}) {
     if (updateAvailable && notify && notifiedFor !== latest && Notification.isSupported()) {
       notifiedFor = latest;
       const n = new Notification({
-        title: 'MemeDrop — update available',
+        title: 'MemeBomb — update available',
         body: `Version ${latest} is available (you have ${current}). Click to download.`,
       });
       n.on('click', () => openDownload());

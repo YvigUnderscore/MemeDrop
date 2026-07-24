@@ -1,5 +1,5 @@
 # ============================================================
-#  MemeDrop — server deployment
+#  MemeBomb — server deployment
 #  Zero-config quick start:   docker compose up -d
 #  (the admin password is printed in the logs on first start)
 #  Optional tuning:           cp .env.example .env  then edit
@@ -7,12 +7,12 @@
 # ============================================================
 
 services:
-  memedrop:
+  memebomb:
     build:
       context: .
       dockerfile: server/Dockerfile
-    image: memedrop:latest
-    container_name: memedrop
+    image: memebomb:latest
+    container_name: memebomb
     restart: unless-stopped
     ports:
       # Publié sur la boucle locale uniquement : le rate limiting s'appuie sur
@@ -25,7 +25,7 @@ services:
     environment:
       # Everything is OPTIONAL. Missing secrets are auto-generated on first boot
       # and persisted in /data/.secrets.json ; the admin password is printed in
-      # the logs on first start (docker logs memedrop).
+      # the logs on first start (docker logs memebomb).
       PORT: 8080
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
       JWT_SECRET: ${JWT_SECRET:-}
@@ -48,7 +48,7 @@ services:
       DATA_DIR: /data
     volumes:
       # Persistance : base SQLite + médias transcodés.
-      # Sur TrueNAS, remplacez par un chemin de dataset, ex: /mnt/tank/apps/memedrop:/data
+      # Sur TrueNAS, remplacez par un chemin de dataset, ex: /mnt/tank/apps/memebomb:/data
       - ./data:/data
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]

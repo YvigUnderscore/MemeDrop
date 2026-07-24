@@ -168,7 +168,7 @@ function oauthResult(res, { ok, message, to = '/' }) {
   const safe = String(message || '').replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
   const target = to.startsWith('/') ? to : '/';
   res.status(ok ? 200 : 400).type('html').send(
-    `<!doctype html><meta charset="utf-8"><title>MemeDrop</title>` +
+    `<!doctype html><meta charset="utf-8"><title>MemeBomb</title>` +
     `<body style="font-family:system-ui;background:#0b0a0c;color:#eee;display:grid;place-items:center;height:100vh;margin:0">` +
     `<div style="text-align:center;max-width:32rem;padding:2rem">` +
     `<h1 style="font-size:1.4rem">${ok ? '✅' : '⛔'} ${safe}</h1>` +
@@ -203,7 +203,7 @@ router.get('/discord/callback', asyncHandler(async (req, res) => {
     }
     // Ce compte Discord est-il déjà lié ailleurs ?
     const taken = db.prepare('SELECT id FROM users WHERE discord_id = ? AND id != ?').get(profile.id, sessionUserId);
-    if (taken) return oauthResult(res, { ok: false, message: 'This Discord account is already linked to another MemeDrop account.', to: '/account' });
+    if (taken) return oauthResult(res, { ok: false, message: 'This Discord account is already linked to another MemeBomb account.', to: '/account' });
 
     db.prepare('UPDATE users SET discord_id = ?, discord_username = ?, discord_avatar = ? WHERE id = ?')
       .run(profile.id, profile.username, profile.avatar, sessionUserId);
@@ -218,7 +218,7 @@ router.get('/discord/callback', asyncHandler(async (req, res) => {
     const w = db.prepare('SELECT * FROM whitelist WHERE discord_id = ? AND banned = 0').get(profile.id);
     if (!w) {
       audit('discord', 'auth.discord.login.unlinked', { discordId: profile.id });
-      return oauthResult(res, { ok: false, message: 'No MemeDrop account is linked to this Discord, and you are not whitelisted on any channel.' });
+      return oauthResult(res, { ok: false, message: 'No MemeBomb account is linked to this Discord, and you are not whitelisted on any channel.' });
     }
     // Nom unique : le pseudo Discord, suffixé si déjà pris par un compte panel.
     let username = profile.username.slice(0, 60) || `membre_${profile.id.slice(-6)}`;

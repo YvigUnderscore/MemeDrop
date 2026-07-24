@@ -79,9 +79,42 @@ function deepMerge(base, over) {
   return out;
 }
 
+// Migration du renommage MemeDrop → MemeBomb. DEUX choses bougent en même temps :
+//   • le nom du fichier   : memedrop-config.json → memebomb-config.json ;
+//   • le DOSSIER lui-même : app.getPath('userData') dérive du productName, donc
+//     %APPDATA%\MemeDrop devient %APPDATA%\MemeBomb.
+// Sans recopie, un utilisateur déjà installé perdrait ses comptes appairés et
+// leurs jetons d'appareil, et devrait redemander un code d'appairage. On copie
+// donc l'ancienne config si la nouvelle n'existe pas encore (premier démarrage
+// après mise à jour). Tout est enveloppé : un échec ici ne doit JAMAIS empêcher
+// le démarrage — au pire on repart sur les DEFAULTS, comme une install neuve.
+function migrateLegacyConfig(target) {
+  try {
+    if (fs.existsSync(target)) return;
+    const userData = app.getPath('userData');
+    const legacy = [
+      // 1. Même dossier userData (productName pas encore changé, ou dev local).
+      path.join(userData, 'memedrop-config.json'),
+      // 2. Ancien dossier voisin : <parent>/MemeDrop/memedrop-config.json.
+      path.join(path.dirname(userData), 'MemeDrop', 'memedrop-config.json'),
+    ];
+    for (const src of legacy) {
+      if (!fs.existsSync(src)) continue;
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.copyFileSync(src, target);
+      console.log(`Config reprise de l'ancienne installation : ${src} → ${target}`);
+      return; // on s'arrête au premier trouvé
+    }
+  } catch (e) {
+    console.error('Reprise de l\'ancienne config échouée:', e.message);
+  }
+}
+
 class Store {
   constructor() {
-    this.file = path.join(app.getPath('userData'), 'memedrop-config.json');
+    this.file = path.join(app.getPath('userData'), 'memebomb-config.json');
+    // Avant toute lecture : récupérer la config de l'ancienne marque si besoin.
+    migrateLegacyConfig(this.file);
     this.data = this._load();
   }
   _load() {

@@ -13,7 +13,7 @@ const fr = {
   'common.delete': 'Supprimer',
   'common.loading': 'Chargement…',
   'common.search': 'Rechercher…',
-  'login.title': 'MemeDrop',
+  'login.title': 'MemeBomb',
   'login.subtitle': "Panel d'administration",
   'login.username': "Nom d'utilisateur",
   'login.password': 'Mot de passe',
